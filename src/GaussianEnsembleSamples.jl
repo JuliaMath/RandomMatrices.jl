@@ -70,7 +70,8 @@ function GaussianHermiteTridiagonalMatrix(n :: Integer, beta :: FloatingPoint)
 end
 
 
-#TODO Check normalization - I guessed this
+#Generates a NxN tridiagonal Wishart matrix
+#Laguerre ensemble
 function GaussianLaguerreTridiagonalMatrix(m :: Integer, a :: FloatingPoint, beta :: FloatingPoint)
     if a <= beta*(m-1)/2.0
         error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", beta*(m-1)/2.0, a))
@@ -83,3 +84,94 @@ function GaussianLaguerreTridiagonalMatrix(m :: Integer, a :: FloatingPoint, bet
     return SymTridiagonal(diag(L)/sqrt(m), diag(L,1)/sqrt(m))
 end
 
+
+# A helper function for Jacobi samples
+function SampleCSValues(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+    if beta == Inf
+        c=sqrt((a+[1:n])./(a+b+2*[1:n]))
+        s=sqrt((b+[1:n])./(a+b+2*[1:n]))
+        cp=sqrt([1:n-1]./(a+b+1+2*[1:n-1]))
+        sp=sqrt((a+b+1+[1:n-1])./(a+b+1+2*[1:n-1]))
+    else
+        #Generate cosine-squared values
+        csq = [rand(Beta(beta*(a+i)/2,beta*(b+i)/2)) for i=1:n]
+        cpsq = [rand(Beta(beta*i/2,beta*(a+b+1+i)/2)) for i=1:n]
+        #Cosine-sine pairs
+        c, s = sqrt(csq), sqrt(1-csq)
+        cp, sp = sqrt(cpsq), sqrt(1-cpsq)
+    end
+    return c, s, cp, sp
+end
+#Generates a 2Mx2M sparse MANOVA matrix
+#Jacobi ensemble
+#
+# Reference:
+#     A. Edelman and B. D. Sutton, "The beta-Jacobi matrix model, the CS decomposition,
+#     and generalized singular value problems", Foundations of Computational Mathematics,
+#     vol. 8 iss. 2 (2008), pp 259-285.
+#TODO check normalization
+function GaussianJacobiSparseMatrix(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+    CoordI = zeros(8n-4)
+    CoordJ = zeros(8n-4)
+    Values = zeros(8n-4)
+
+    c, s, cp, sp = SampleCSValues(n, a, b, beta)
+
+    #Diagonals of each block
+    for i=1:n
+        CoordI[i], CoordJ[i] = i, i
+        Values[i] = i==1 ? c[n] : c[n+1-i] * sp[n+1-i]
+    end    
+    for i=1:n
+        CoordI[n+i], CoordJ[n+i] = i, n+i
+        Values[n+i] = i==n ? s[1] : s[n+1-i] * sp[n-i]
+    end
+    for i=1:n
+        CoordI[2n+i], CoordJ[2n+i] = n+i, i
+        Values[2n+i] = i==1 ? -s[n] : -s[n+1-i] * sp[n+1-i]
+    end
+    for i=1:n
+        CoordI[3n+i], CoordJ[3n+i] = n+i, n+i
+        Values[3n+i] = i==n ? c[1] : c[n+1-i] * sp[n-i]
+    end
+    #Off-diagonals of each block
+    for i=1:n+1
+        CoordI[4n+i], CoordJ[4n+i] = i,i+1
+        Values[4n+i] = -s[n+1-i]*cp[n-i]
+    end
+    for i=1:n+1
+        CoordI[5n-1+i], CoordJ[5n-1+i] = i+1,n+i
+        Values[5n-1+i] = c[n-i]*cp[n-i]
+    end
+    for i=1:n+1
+        CoordI[6n-2+i], CoordJ[6n-2+i] = n+i,i+1
+        Values[6n-2+i] = -c[n+1-i]*cp[n-i]
+    end
+    for i=1:n+1
+        CoordI[7n-3+i], CoordJ[7n-3+i] = n+i,i+1
+        Values[7n-3+i] = -s[n-i]*cp[n-i]
+    end
+    
+    return sparse(CoordI, CoordJ, Values)
+end
+
+#Return n eigenvalues distributed according to the Hermite ensemble
+function GaussianHermiteSamples(n :: Integer, beta :: FloatingPoint)
+    eigvals(GaussianHermiteTridiagonalMatrix(n, beta))
+end
+
+#Return n eigenvalues distributed according to the Laguerre ensemble
+function GaussianLaguerreSamples(m :: Integer, a :: FloatingPoint, beta :: FloatingPoint)
+    eigvals(GaussianLaguerreTridiagonalMatrix(m, a, beta))
+end
+
+#Return n eigenvalues distributed according to the Jacobi ensemble
+function GaussianJacobiSamples(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+    #Generate just the upper left quadrant of the matrix
+    c, s, cp, sp = SampleCSValues(n, a, b, beta)
+    dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
+    ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
+    M = Tridiagonal(zeros(n-1), dv, ev)
+    return svdvals(full(M)) #No SVD for tridiagonal matrices... yet
+end
+    
