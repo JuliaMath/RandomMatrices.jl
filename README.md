@@ -72,5 +72,5 @@ Famous distributions in random matrix theory
 # References
 - James Albrecht, Cy Chan, and Alan Edelman, "Sturm Sequences and Random Eigenvalue Distributions", *Foundations of Computational Mathematics*, vol. 9 iss. 4 (2009), pp 461-483. [[pdf]](www-math.mit.edu/~edelman/homepage/papers/sturm.pdf) [[doi]](http://dx.doi.org/10.1007/s10208-008-9037-x)
 - Alan Edelman and Brian D. Sutton, "The beta-Jacobi matrix model, the CS decomposition, and generalized singular value problems", *Foundations of Computational Mathematics*, vol. 8 iss. 2 (2008), pp 259-285. [[pdf]](http://www-math.mit.edu/~edelman/homepage/papers/betajacobi.pdf) [[doi]](http://dx.doi.org/10.1007/s10208-006-0215-9)
-- Peter Henrici, *Applied and Computational Complex Analysis, Volume I: Power Series---Integration---Conformal Mapping---Location of Zeros*, Wiley-Interscience: New York, 1974
+- Peter Henrici, *Applied and Computational Complex Analysis, Volume I: Power Series---Integration---Conformal Mapping---Location of Zeros*, Wiley-Interscience: New York, 1974 [[worldcat]](http://www.worldcat.org/title/applied-and-computational-complex-analysis/oclc/746035)
 
