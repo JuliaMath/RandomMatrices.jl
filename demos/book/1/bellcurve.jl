@@ -9,20 +9,18 @@
 t=1000000
 dx=.2
 v=randn(t)
-count=hist(v,[-4-dx/2:dx:4+dx/2])
-count/=sum(count)*dx
+grid=[-4:dx:4]
+count=hist(v,grid)/(t*dx)
 
 ## Theory
-x=[-4:dx:4]
+x=grid
 y=exp(-x.^2/2)/sqrt(2*pi)
 
 ## Plot
-#XXX Currently Histogram() must start plotting from 0.
-#For now, add offset to theoretical curve
-#Filed: https://github.com/nolta/Winston.jl/issues/28
-#cjh 2013-03-16
 using Winston
 p = FramedPlot()
-add(p, Histogram(count, dx))
-add(p, Curve(x+4+dx/2, y, "color", "blue", "linewidth", 2)) 
+h = Histogram(count, dx)
+h.x0 = grid[1]
+add(p, h)
+add(p, Curve(x, y, "color", "blue", "linewidth", 2)) 
 file(p, "bellcurve.png")
