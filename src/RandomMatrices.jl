@@ -1,14 +1,16 @@
 require("Distributions")
 
 module RandomMatrices
-    using Distributions
-
+    importall Distributions
+    using Catalan
+    
     #Classical Gaussian matrix ensembles
     include("GaussianEnsembleSamples.jl")
+    include("GaussianEnsembleDistributions.jl")
+    
     # Classical univariate distributions
     ####################################
     include("densities/Semicircle.jl")
-    #Tracy-Widom distribution
     include("densities/TracyWidom.jl")
     
     #Fast histogrammer for matrix eigenvalues
@@ -16,4 +18,4 @@ module RandomMatrices
     
     #Formal power series
     include("FormalPowerSeries.jl")
-end
+end #module

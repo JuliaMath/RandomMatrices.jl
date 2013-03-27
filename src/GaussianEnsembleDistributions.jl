@@ -9,6 +9,8 @@
 # doi: 10.1063/1.1507823
 # arXiv: math-ph/0206043
 
+export VandermondeDeterminant, HermiteJPDF, LaguerreJPDF, JacobiJPDF 
+
 ###
 # Joint probability density functions
 #
@@ -100,6 +102,4 @@ function JacobiJPDF{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eigenvalue}, n1 
 
     return c * VandermondeDeterminant(lambda, beta) * Prod * exp(-Energy)
 end
-
-
 

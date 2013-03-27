@@ -9,7 +9,11 @@
 #     Power Series---Integration---Conformal Mapping---Location of Zeros,
 #     Wiley-Interscience: New York, 1974
 
-import Base.inv, Base.length
+import Base.eye, Base.inv, Base.length, 
+       Base.==, Base.+, Base.-, Base.*, Base..*, Base.^
+export FormalPowerSeries, tovector, trim, isunit, isnonunit,
+       MatrixForm, reciprocal, derivative, isconstant, compose,
+       isalmostunit, FormalLaurentSeries
 
 #############################
 # Formal power series (fps) #
@@ -44,6 +48,20 @@ function tovector{T}(P::FormalPowerSeries{T}, n :: Integer)
 end
 
 
+# Basic housekeeping and properties
+
+# Remove extraneous zeros
+function trim{T}(P::FormalPowerSeries{T})
+    for (k,v) in P.c
+        if v==0
+            delete!(P.c, k)
+        end
+    end
+    return P
+end
+
+length{T}(P::FormalPowerSeries{T})=max([k for (k,v) in P.c])
+
 function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
     for (k,v) in P.c
         if v==0 #ignore explicit zeros
@@ -65,22 +83,6 @@ function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
     end
     return true
 end
-
-
-
-# Basic housekeeping and properties
-
-# Remove extraneous zeros
-function trim{T}(P::FormalPowerSeries{T})
-    for (k,v) in P.c
-        if v==0
-            delete!(P.c, k)
-        end
-    end
-    return P
-end
-
-length{T}(P::FormalPowerSeries{T})=max([k for (k,v) in P.c])
 
 # Basic arithmetic [H, p.10]
 function +{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})

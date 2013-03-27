@@ -8,6 +8,12 @@
 # doi: 10.1063/1.1507823
 # arXiv: math-ph/0206043
 
+using Distributions
+export GaussianHermiteMatrix, GaussianLaguerreMatrix, GaussianJacobiMatrix,
+       GaussianHermiteTridiagonalMatrix, GaussianLaguerreTridiagonalMatrix,
+       GaussianJacobiSparseMatrix,
+       GaussianHermiteSamples, GaussianLaguerreSamples, GaussianJacobiSamples
+
 #Generates a NxN symmetric Wigner matrix
 #Hermite ensemble
 function GaussianHermiteMatrix(n :: Integer, beta :: Integer)
@@ -57,7 +63,6 @@ end
 
 
 #A convenience function
-using Distributions
 chi(df) = sqrt(rand(Chisq(df)))
 
 #Generates a NxN tridiagonal Wigner matrix

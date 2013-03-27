@@ -1,8 +1,11 @@
 #Computes the Tracy-Widom distribution by directly solving the
 #Painlevé II equation
+export TracyWidom
 using ODE
+
 include("gradient.jl")
-function tracywidom(t::Real)
+
+function TracyWidom(t::Real)
     t0 = -8.0
 
     t>t0 ? return 0.0 : nothing

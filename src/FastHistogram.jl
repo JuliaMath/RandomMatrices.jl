@@ -1,3 +1,5 @@
+export hist_eig
+
 #Uses the method of Sturm sequences to compute the histogram of eigenvalues of a matrix
 #
 # Reference
@@ -25,7 +27,6 @@ function hist_eig{GridPoint <: Number}(M::AbstractMatrix, bins::Vector{GridPoint
         histogram[BinId] = sum([r < 0 for r in SturmRatioSequence])
     end
     histogram = int(diff([histogram; n]))
-    return histogram
 end
 
 
@@ -52,6 +53,5 @@ function hist_eig{GridPoint <: Number}(M::SymTridiagonal, bins::Vector{GridPoint
         histogram[BinId] = sum([SturmRatio < 0 for SturmRatio in r])
     end
     histogram = int(diff([histogram; n]))
-    return histogram
 end
 
