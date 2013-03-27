@@ -7,6 +7,11 @@
 # Journal of Mathematical Physics, vol. 43 no. 11 (2002), pp. 5830--5547
 # doi: 10.1063/1.1507823
 # arXiv: math-ph/0206043
+#
+# References
+#
+# Alan Edelman, Per-Olof Persson and Brian D Sutton, "The fourfold way"
+# http://www-math.mit.edu/~edelman/homepage/papers/ffw.pdf
 
 using Distributions
 export GaussianHermiteMatrix, GaussianLaguerreMatrix, GaussianJacobiMatrix,
@@ -67,8 +72,10 @@ chi(df) = sqrt(rand(Chisq(df)))
 
 #Generates a NxN tridiagonal Wigner matrix
 #Hermite ensemble
+#The beta=infinity case is defined in Edelman, Persson and Sutton, 2012
 function GaussianHermiteTridiagonalMatrix(n :: Integer, beta :: FloatingPoint)
-    @assert beta > 0
+    if beta<=0 error("beta must be positive") end
+    if beta==Inf return SymTridiagonal(zeros(n), [sqrt(x/2) for x=n-1:-1:1]) end
     Hdiag = randn(n)/sqrt(n)
     Hsup = [chi(beta*i)/sqrt(2*n) for i=n-1:-1:1]
     return SymTridiagonal(Hdiag, Hsup)
