@@ -16,7 +16,7 @@ export VandermondeDeterminant, HermiteJPDF, LaguerreJPDF, JacobiJPDF
 #
 
 #Calculate Vandermonde determinant term
-function VandermondeDeterminant{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eigenvalue}, beta :: Unsigned)
+function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
     n = length(lambda)
     Vandermonde = 1.0
     for j=1:n
@@ -27,7 +27,7 @@ function VandermondeDeterminant{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eige
     return Vandermonde
 end
 
-function HermiteJPDF{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eigenvalue}, beta :: Unsigned)
+function HermiteJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
     n = length(lambda)
     #Calculate normalization constant
     c = (2pi)^(-n/2)
@@ -44,7 +44,7 @@ end
 
 
 #TODO Check m and ns
-function LaguerreJPDF{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eigenvalue}, n :: Unsigned, beta :: Unsigned)
+function LaguerreJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, n::Unsigned, beta::Real)
     m = length(lambda)
     #Laguerre parameters
     a = beta*n/2.0
@@ -71,7 +71,7 @@ end
 
 
 #TODO Check m and ns
-function JacobiJPDF{Eigenvalue<:FloatingPoint}(lambda :: Vector{Eigenvalue}, n1 :: Unsigned, n2 :: Unsigned, beta :: Unsigned)
+function JacobiJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, n1::Unsigned, n2::Unsigned, beta::Real)
     m = length(lambda)
     #Jacobi parameters
     a1 = beta*n1/2.0
