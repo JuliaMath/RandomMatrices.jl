@@ -5,10 +5,11 @@ module RandomMatrices
 
     #Classical Gaussian matrix ensembles
     include("GaussianEnsembleSamples.jl")
-    #Classical univariate distributions
-    include("GaussianDensities.jl")
+    # Classical univariate distributions
+    ####################################
+    include("densities/Semicircle.jl")
     #Tracy-Widom distribution
-    include("TracyWidom.jl")
+    include("densities/TracyWidom.jl")
     
     #Fast histogrammer for matrix eigenvalues
     include("FastHistogram.jl")
