@@ -3,6 +3,11 @@ RandomMatrices.jl
 
 Random matrix repository for Julia
 
+## License
+Copyright (c) 2013 Jiahao Chen <jiahao@mit.edu> @jiahao
+
+This Julia package is distribtued under the [MIT License](http://opensource.org/licenses/MIT).
+
 # Gaussian matrix ensembles
 
 ## Joint probability density functions (jpdfs)
