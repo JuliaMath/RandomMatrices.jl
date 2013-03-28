@@ -11,7 +11,7 @@
 
 import Base.eye, Base.inv, Base.length, 
        Base.==, Base.+, Base.-, Base.*, Base..*, Base.^
-export FormalPowerSeries, tovector, trim, isunit, isnonunit,
+export FormalPowerSeries, fps, tovector, trim, isunit, isnonunit,
        MatrixForm, reciprocal, derivative, isconstant, compose,
        isalmostunit, FormalLaurentSeries
 
@@ -33,19 +33,23 @@ type FormalPowerSeries{Coefficients}
         FormalPowerSeries{Coefficients}(c)
     end
 end
+#Convenient abbreviation for floats
+fps = FormalPowerSeries{Float64}
 
 
-
-#Return truncated vector with c[i+1] = P[i]
-function tovector{T}(P::FormalPowerSeries{T}, n :: Integer)
-    c = zeros(n)
+#Return truncated vector with c[i] = P[n[i]]
+function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: Vector{Index})
+    nn = length(n)
+    c = zeros(nn)
     for (k,v) in P.c
-        if 1<=k+1<=n
-            c[k+1]=v
+        for i=1:nn
+            n[i]==k ? (c[i]=v) : nothing
         end
     end
     c
 end
+
+tovector(P::FormalPowerSeries, n::Integer)=tovector(P,[1:n])
 
 
 # Basic housekeeping and properties
@@ -197,12 +201,7 @@ end
 function reciprocal{T}(P::FormalPowerSeries{T}, n :: Integer)
     n<0 ? error(sprintf("Invalid inverse truncation length %d requested", n)) : true
 
-    a = zeros(n) #Extract original coefficients in vector
-    for (k,v) in P.c
-        if 1<=k+1<=n
-            a[k+1] = v
-        end
-    end
+    a = tovector(P, [0:n-1]) #Extract original coefficients in vector
     a[1]==0 ? (error("Inverse does not exist")) : true
     inv_a1 = T<:Number ? 1.0/a[1] : inv(a[1])
     
@@ -213,7 +212,6 @@ function reciprocal{T}(P::FormalPowerSeries{T}, n :: Integer)
     end
     FormalPowerSeries{T}(b)
 end
-
 
 #Derivative of fps [H. Sec.1.4, p.18] 
 function derivative{T}(P::FormalPowerSeries{T})
@@ -268,8 +266,36 @@ function isalmostunit{T}(P::FormalPowerSeries{T})
     (has(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
 end
 
+
+# Reversion of a series (inverse with respect to composition)
+# P^[-1]
+# [H. Sec.1.7, p.47, but more succintly stated on p.55]
+# Constructs the upper left nxn subblock of the matrix representation
+# and inverts it
+function reversion{T}(P::FormalPowerSeries{T}, n :: Integer)
+    n>0 ? error("Need non-negative dimension") : nothing
+    
+    Q = P
+    A = zeros(n, n)
+    #Construct the matrix representation (1.9-1), p.55
+    for i=1:n
+        Q = P
+        ai = tovector(Q, n) #Extract coefficients P[1]...P[n]
+        A[i,:] = ai
+        i<n ? Q *= P : nothing
+    end
+
+    #TODO I just need the first row of the inverse
+    B = inv(A)
+    FormalPowerSeries{T}(B[1, :]'[:,1])
+end
+
+inv(P::FormalPowerSeries, n::Integer) = reversion(P, n)
+
+
 ###############################
 # Formal Laurent series (fLs) #
+# [H., Sec. 1.8, p. 51]       #
 ###############################
 
 type FormalLaurentSeries{Coefficients}
@@ -336,9 +362,9 @@ end
 #of the original series
 #Force reciprocal to exist
 X.c[0] = 1
-discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c),c)))
+discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c),[0:c-1])))
 if discrepancy > c*sqrt(eps())
-    error(sprintf("Error %f exceeds tolerance %f", discrepancy, c*sqrt(eps())))
+    error(@sprintf("Error %f exceeds tolerance %f", discrepancy, c*sqrt(eps())))
 end
 #@assert norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c),c)) < c*sqrt(eps())
 

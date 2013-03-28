@@ -8,8 +8,8 @@ include("gradient.jl")
 function TracyWidom(t::Real)
     t0 = -8.0
 
-    t>t0 ? return 0.0 : nothing
-    t>5  ? return 0.0 : nothing
+    t>t0 ? (return 0.0) : nothing
+    t>5  ? (return 0.0) : nothing
 
     deq(t, y) = [y[2]; t*y[1]+2y[1]^3; y[4]; y[1]^2]
 

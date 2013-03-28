@@ -1,8 +1,8 @@
 #Wigner semicircle distribution
 
 importall Distributions
-using gsl #needed for hypergeom
 using Catalan
+using GSL #needed for hypergeom
 export Semicircle
 
 type Semicircle <: ContinuousUnivariateDistribution
@@ -69,7 +69,7 @@ var(X::Semicircle)=std(X)^2
 function moment(X::Semicircle, order::Integer)
     a, r = X.mean, X.radius
     if X.mean != 0 
-        a^n hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
+        a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
     else
         order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
     end
@@ -121,7 +121,7 @@ end
 # Use relationship with beta distribution
 function rand(X::Semicircle)
     Y = rand(Beta(1.5, 1.5))
-    X.mean + 2 X.radius * Y - X.radius
+    X.mean + 2 * X.radius * Y - X.radius
 end
 
 
