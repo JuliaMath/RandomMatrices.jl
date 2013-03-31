@@ -19,9 +19,21 @@ export GaussianHermiteMatrix, GaussianLaguerreMatrix, GaussianJacobiMatrix,
        GaussianJacobiSparseMatrix,
        GaussianHermiteSamples, GaussianLaguerreSamples, GaussianJacobiSamples
 
+
+#########################
+# Convenience functions #
+#########################
+
+#Produces a random variate of the chi distribution
+chi(df) = df==0? 0.0 : sqrt(rand(Chisq(df)))
+
+#############################
+# Gaussian Wigner  ensemble #
+# Gaussian Hermite ensemble #
+#############################
+
 #Generates a NxN symmetric Wigner matrix
-#Hermite ensemble
-function GaussianHermiteMatrix(n :: Integer, beta :: Integer)
+function GaussianHermiteMatrix(n::Integer, beta::Integer)
     if beta == 1 #real
         A = randn(n, n)
         normalization = sqrt(2*n)
@@ -40,10 +52,24 @@ function GaussianHermiteMatrix(n :: Integer, beta :: Integer)
     return (A + A') / normalization
 end
 
+#Generates a NxN tridiagonal Wigner matrix
+#The beta=infinity case is defined in Edelman, Persson and Sutton, 2012
+function GaussianHermiteTridiagonalMatrix(n::Integer, beta::Real)
+    if beta<=0 error("beta must be positive") end
+    if beta==Inf return SymTridiagonal(zeros(n), [sqrt(x/2) for x=n-1:-1:1]) end
+    Hdiag = randn(n)/sqrt(n)
+    Hsup = [chi(beta*i)/sqrt(2*n) for i=n-1:-1:1]
+    return SymTridiagonal(Hdiag, Hsup)
+end
+
+##############################
+# Gaussian Wishart  ensemble #
+# Gaussian Laguerre ensemble #
+##############################
+
 #Generates a NxN Hermitian Wishart matrix
-#Laguerre ensemble
 #TODO Check - the eigenvalue distribution looks funky
-function GaussianLaguerreMatrix(m :: Integer, n :: Integer, beta :: Integer)
+function GaussianLaguerreMatrix(m::Integer, n::Integer, beta::Integer)
     if beta == 1 #real
         A = randn(m, n)
     elseif beta == 2 #complex
@@ -58,47 +84,47 @@ function GaussianLaguerreMatrix(m :: Integer, n :: Integer, beta :: Integer)
     return (A * A') / m
 end
 
+
+#Generates a NxN bidiagonal Wishart matrix
+#Laguerre ensemble
+function GaussianLaguerreBidiagonalMatrix(m::Integer, a::Real, beta::Real)
+    min_a = beta*(m-1)/2
+    a<min_a ? error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", min_a, a)) : nothing
+    Hdiag = [chi(2*a-i*beta) for i=0:m-1]
+    Hsub = [chi(beta*i) for i=m-1:-1:1]
+    Bidiagonal(Hsub, Hdiag, false)/(m^0.25)
+end
+
+
+#Generates a NxN tridiagonal Wishart matrix
+#Laguerre ensemble
+function GaussianLaguerreTridiagonalMatrix(m::Integer, a::Real, beta::Real)
+    B = GaussianLaguerreBidiagonalMatrix(m, a, beta)
+    B * B'
+end
+
+
+#Return n eigenvalues distributed according to the Hermite ensemble
+function GaussianHermiteSamples(n::Integer, beta::Real)
+    eigvals(GaussianHermiteTridiagonalMatrix(n, beta))
+end
+
+
+############################
+# Gaussian MANOVA ensemble #
+# Jacobi ensemble          #
+############################
+
 #Generates a NxN self-dual MANOVA Matrix
-#Jacobi ensemble
-function GaussianJacobiMatrix(m :: Integer, n1 :: Integer, n2 :: Integer, beta :: Integer)
+function GaussianJacobiMatrix(m::Integer, n1::Integer, n2::Integer, beta::Integer)
     w1 = Wishart(m, n1, beta)
     w2 = Wishart(m, n2, beta)
     return (w1 + w2) \ w1
 end
 
 
-#A convenience function
-chi(df) = sqrt(rand(Chisq(df)))
-
-#Generates a NxN tridiagonal Wigner matrix
-#Hermite ensemble
-#The beta=infinity case is defined in Edelman, Persson and Sutton, 2012
-function GaussianHermiteTridiagonalMatrix(n :: Integer, beta :: FloatingPoint)
-    if beta<=0 error("beta must be positive") end
-    if beta==Inf return SymTridiagonal(zeros(n), [sqrt(x/2) for x=n-1:-1:1]) end
-    Hdiag = randn(n)/sqrt(n)
-    Hsup = [chi(beta*i)/sqrt(2*n) for i=n-1:-1:1]
-    return SymTridiagonal(Hdiag, Hsup)
-end
-
-
-#Generates a NxN tridiagonal Wishart matrix
-#Laguerre ensemble
-function GaussianLaguerreTridiagonalMatrix(m :: Integer, a :: FloatingPoint, beta :: FloatingPoint)
-    if a <= beta*(m-1)/2.0
-        error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", beta*(m-1)/2.0, a))
-    end
-    Hdiag = [chi(2*a-i*beta) for i=0:m-1]
-    Hsub = [chi(beta*i) for i=m-1:-1:1]
-    #Julia has no bidiagonal type... yet
-    B = Tridiagonal(Hsub, Hdiag, zeros(m-1))
-    L = B * B' #Currently returns a dense matrix
-    return SymTridiagonal(diag(L)/sqrt(m), diag(L,1)/sqrt(m))
-end
-
-
 # A helper function for Jacobi samples
-function SampleCSValues(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+function SampleCSValues(n::Integer, a::Real, b::Real, beta::Real)
     if beta == Inf
         c=sqrt((a+[1:n])./(a+b+2*[1:n]))
         s=sqrt((b+[1:n])./(a+b+2*[1:n]))
@@ -114,6 +140,15 @@ function SampleCSValues(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, be
     end
     return c, s, cp, sp
 end
+
+
+#Return n eigenvalues distributed according to the Laguerre ensemble
+#Compute the singular values of the bidiagonal matrix
+function GaussianLaguerreSamples(m::Integer, a::Real, beta::Real)
+    svdvals(GaussianLaguerreBidiagonalMatrix(m, a, beta))
+end
+
+
 #Generates a 2Mx2M sparse MANOVA matrix
 #Jacobi ensemble
 #
@@ -122,7 +157,7 @@ end
 #     and generalized singular value problems", Foundations of Computational Mathematics,
 #     vol. 8 iss. 2 (2008), pp 259-285.
 #TODO check normalization
-function GaussianJacobiSparseMatrix(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+function GaussianJacobiSparseMatrix(n::Integer, a::Real, b::Real, beta::Real)
     CoordI = zeros(8n-4)
     CoordJ = zeros(8n-4)
     Values = zeros(8n-4)
@@ -167,23 +202,20 @@ function GaussianJacobiSparseMatrix(n :: Integer, a :: FloatingPoint, b :: Float
     return sparse(CoordI, CoordJ, Values)
 end
 
-#Return n eigenvalues distributed according to the Hermite ensemble
-function GaussianHermiteSamples(n :: Integer, beta :: FloatingPoint)
-    eigvals(GaussianHermiteTridiagonalMatrix(n, beta))
-end
 
-#Return n eigenvalues distributed according to the Laguerre ensemble
-function GaussianLaguerreSamples(m :: Integer, a :: FloatingPoint, beta :: FloatingPoint)
-    eigvals(GaussianLaguerreTridiagonalMatrix(m, a, beta))
-end
-
-#Return n eigenvalues distributed according to the Jacobi ensemble
-function GaussianJacobiSamples(n :: Integer, a :: FloatingPoint, b :: FloatingPoint, beta :: FloatingPoint)
+#Return n-dimensional bidiagonal matrix representation of the Jacobi ensemble
+function GaussianJacobiBidiagonalMatrix(n::Integer, a::Real, b::Real, beta::Real)
     #Generate just the upper left quadrant of the matrix
     c, s, cp, sp = SampleCSValues(n, a, b, beta)
     dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
     ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
-    M = Tridiagonal(zeros(n-1), dv, ev)
-    return svdvals(full(M)) #No SVD for tridiagonal matrices... yet
+    Bidiagonal(dv, ev, true)
 end
     
+
+#Return n eigenvalues distributed according to the Jacobi ensemble
+function GaussianJacobiSamples(n::Integer, a::Real, b::Real, beta::Real)
+    svdvals(GaussianJacobiBidiagonalMatrix(n, a, b))
+end
+    
+

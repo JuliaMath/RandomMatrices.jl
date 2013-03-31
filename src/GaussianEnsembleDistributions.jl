@@ -27,6 +27,7 @@ function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, 
     return Vandermonde
 end
 
+
 function HermiteJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
     n = length(lambda)
     #Calculate normalization constant
