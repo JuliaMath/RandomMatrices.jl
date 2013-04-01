@@ -43,7 +43,6 @@ function HermiteJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
 end
 
 
-
 #TODO Check m and ns
 function LaguerreJPDF{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, n::Unsigned, beta::Real)
     m = length(lambda)

@@ -17,7 +17,8 @@ using Distributions
 export GaussianHermiteMatrix, GaussianLaguerreMatrix, GaussianJacobiMatrix,
        GaussianHermiteTridiagonalMatrix, GaussianLaguerreTridiagonalMatrix,
        GaussianJacobiSparseMatrix,
-       GaussianHermiteSamples, GaussianLaguerreSamples, GaussianJacobiSamples
+       GaussianHermiteSamples, GaussianLaguerreSamples, GaussianJacobiSamples,
+       chi, GaussianLaguerreBidiagonalMatrix, GaussianJacobiBidiagonalMatrix
 
 
 #########################
@@ -36,31 +37,37 @@ chi(df) = df==0? 0.0 : sqrt(rand(Chisq(df)))
 function GaussianHermiteMatrix(n::Integer, beta::Integer)
     if beta == 1 #real
         A = randn(n, n)
-        normalization = sqrt(2*n)
     elseif beta == 2 #complex
         A = randn(n, n) + im*randn(n, n)
-        normalization = sqrt(4*n)
     elseif beta == 4 #quaternion
         #Employs 2x2 matrix representation of quaternions
         X = randn(n, n) + im*randn(n, n)
         Y = randn(n, n) + im*randn(n, n)
-        A = [X Y; -conj(Y) conj(X)]
-        normalization = sqrt(8*n) #TODO check normalization
+        A = [X Y -conj(Y) conj(X)]
     else
-        error(@sprintf("beta = %d is not implemented", beta))
+        throw(string("beta = ", beta, " is not implemented"))
     end
-    return (A + A') / normalization
+    return (A + A') / sqrt(2*beta*n)
 end
+
 
 #Generates a NxN tridiagonal Wigner matrix
 #The beta=infinity case is defined in Edelman, Persson and Sutton, 2012
 function GaussianHermiteTridiagonalMatrix(n::Integer, beta::Real)
-    if beta<=0 error("beta must be positive") end
-    if beta==Inf return SymTridiagonal(zeros(n), [sqrt(x/2) for x=n-1:-1:1]) end
-    Hdiag = randn(n)/sqrt(n)
-    Hsup = [chi(beta*i)/sqrt(2*n) for i=n-1:-1:1]
+    if beta<0 error("beta must be non-negative") end
+    if beta==Inf return SymTridiagonal(zeros(n), Float64[sqrt(x/n) for x=n-1:-1:1]) end
+    nrm = 1/sqrt(beta*n) #normalization
+    Hdiag =    randn(n)*nrm
+    Hsup = [chi(beta*i)*nrm for i=n-1:-1:1]
     return SymTridiagonal(Hdiag, Hsup)
 end
+
+
+#Return n eigenvalues distributed according to the Hermite ensemble
+function GaussianHermiteSamples(n::Integer, beta::Real)
+    eigvals(GaussianHermiteTridiagonalMatrix(n, beta))
+end
+
 
 ##############################
 # Gaussian Wishart  ensemble #
@@ -68,17 +75,18 @@ end
 ##############################
 
 #Generates a NxN Hermitian Wishart matrix
-#TODO Check - the eigenvalue distribution looks funky
-function GaussianLaguerreMatrix(m::Integer, n::Integer, beta::Integer)
+#n: exterior dimension of matrix
+#m: "interior" dimension of the matrix
+function GaussianLaguerreMatrix(n::Integer, m::Integer, beta::Integer)
     if beta == 1 #real
-        A = randn(m, n)
+        A = randn(n, m)
     elseif beta == 2 #complex
-        A = randn(m, n) + im*randn(m, n)
+        A = randn(n, m) + im*randn(n, m)
     elseif beta == 4 #quaternion
         #Employs 2x2 matrix representation of quaternions
-        X = randn(m, n) + im*randn(m, n)
-        Y = randn(m, n) + im*randn(m, n)
-        A = [X Y; -conj(Y) conj(X)]
+        X = randn(n, m) + im*randn(n, m)
+        Y = randn(n, m) + im*randn(n, m)
+        A = [X Y -conj(Y) conj(X)]
         error(@sprintf("beta = %d is not implemented", beta))
     end
     return (A * A') / m
@@ -87,12 +95,12 @@ end
 
 #Generates a NxN bidiagonal Wishart matrix
 #Laguerre ensemble
-function GaussianLaguerreBidiagonalMatrix(m::Integer, a::Real, beta::Real)
-    min_a = beta*(m-1)/2
-    a<min_a ? error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", min_a, a)) : nothing
-    Hdiag = [chi(2*a-i*beta) for i=0:m-1]
-    Hsub = [chi(beta*i) for i=m-1:-1:1]
-    Bidiagonal(Hsub, Hdiag, false)/(m^0.25)
+function GaussianLaguerreBidiagonalMatrix(n::Integer, a::Real, beta::Real)
+    min_a = beta*(n-1)/2
+    a<min_a ? error(@sprintf("Given your choice of n and beta, a must be at least %f (You said a = %f)", min_a, a)) : nothing
+    Hdiag = [chi(2*a-i*beta) for i=0:n-1]
+    Hsub = [chi(beta*i) for i=n-1:-1:1]
+    Bidiagonal(Hdiag, Hsub, false)/sqrt(n)
 end
 
 
@@ -104,11 +112,25 @@ function GaussianLaguerreTridiagonalMatrix(m::Integer, a::Real, beta::Real)
 end
 
 
-#Return n eigenvalues distributed according to the Hermite ensemble
-function GaussianHermiteSamples(n::Integer, beta::Real)
-    eigvals(GaussianHermiteTridiagonalMatrix(n, beta))
+#Return n eigenvalues distributed according to the Laguerre ensemble
+#Compute the singular values of the bidiagonal matrix
+function GaussianLaguerreSamples(m::Integer, a::Real, beta::Real)
+    svdvals(GaussianLaguerreBidiagonalMatrix(m, a, beta))
 end
 
+#The limiting density of states for an infinite matrix
+#This is the Marčenko-Pastur law
+#Marčenko, V.A. and Pastur, L.A. (1967). Distribution of eigenvalues for some sets of random
+#    matrices. Sbornik: Mathematics 1, 457–483.
+function GaussianLaguerreDensity(n::Integer, m::Integer, beta::Real, x::Real)
+    GaussianLaguerreDensity(n/m, beta, x)
+end
+function GaussianLaguerreDensity(c::Real, beta::Real, x::Real)
+    #There is also a finite mass at 0 for c>1 of weight (1 - 1/c)
+    if c>1 && x==0 return Inf 
+    am, ap = beta*(1-sqrt(c))^2, beta*(1-sqrt(c))^2
+    sqrt((x-am)*(ap-x))/(2*pi*beta*x*c)
+end
 
 ############################
 # Gaussian MANOVA ensemble #
@@ -116,9 +138,9 @@ end
 ############################
 
 #Generates a NxN self-dual MANOVA Matrix
-function GaussianJacobiMatrix(m::Integer, n1::Integer, n2::Integer, beta::Integer)
-    w1 = Wishart(m, n1, beta)
-    w2 = Wishart(m, n2, beta)
+function GaussianJacobiMatrix(n::Integer, m1::Integer, m2::Integer, beta::Integer)
+    w1 = Wishart(n, m1, beta)
+    w2 = Wishart(n, m2, beta)
     return (w1 + w2) \ w1
 end
 
@@ -139,13 +161,6 @@ function SampleCSValues(n::Integer, a::Real, b::Real, beta::Real)
         cp, sp = sqrt(cpsq), sqrt(1-cpsq)
     end
     return c, s, cp, sp
-end
-
-
-#Return n eigenvalues distributed according to the Laguerre ensemble
-#Compute the singular values of the bidiagonal matrix
-function GaussianLaguerreSamples(m::Integer, a::Real, beta::Real)
-    svdvals(GaussianLaguerreBidiagonalMatrix(m, a, beta))
 end
 
 
@@ -218,4 +233,18 @@ function GaussianJacobiSamples(n::Integer, a::Real, b::Real, beta::Real)
     svdvals(GaussianJacobiBidiagonalMatrix(n, a, b))
 end
     
-
+#Returns limiting density of states for an infinite-dimensional matrix
+#A generalization of Marcenko-Pastur
+function GaussianJacobiDensity(n::Integer, m1::Integer, m2::Integer, beta::Real, x::Real)
+    GaussianJacobiDensity(n/m1, n/m2, beta, x)
+end
+function GaussianJacobiDensity(c1::Real, c2::Real, beta::Real, x::Real)
+    if !(0<=c1<=1) error(string("Need 0<=c1<=1 but you have c1=", c1)) end  
+    if !(beta==1) error(string("beta!=1 not implemented")) end
+    #Finite mass at 0 of weight (1-1/c2)
+    if c2>1 && x==0 return Inf 
+    b0=c1*x-c2*x-c1+2
+    b1=-2c2*x^2+2x-3c1*x+c1+c2*x-1+2c1*x^2
+    b2=c1*x-2c1*x^2+c2*x^2-x^3*c2+x^3*c1
+    sqrt(4b2*b0-b1^2)/(2*pi*b2)
+end
