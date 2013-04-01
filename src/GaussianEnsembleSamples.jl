@@ -34,6 +34,8 @@ chi(df) = df==0? 0.0 : sqrt(rand(Chisq(df)))
 #############################
 
 #Generates a NxN symmetric Wigner matrix
+#For beta=1,2,4, generates a NxN matrix from the Gaussian orthogonal/unitary/
+#symplectic ensembles
 function GaussianHermiteMatrix(n::Integer, beta::Integer)
     if beta == 1 #real
         A = randn(n, n)
@@ -77,6 +79,8 @@ end
 #Generates a NxN Hermitian Wishart matrix
 #n: exterior dimension of matrix
 #m: "interior" dimension of the matrix
+#These are sometimes called white Wishart matrices, reflecting their properties
+#as random covariance matrices with underlying covariance = identity.
 function GaussianLaguerreMatrix(n::Integer, m::Integer, beta::Integer)
     if beta == 1 #real
         A = randn(n, m)
@@ -127,7 +131,7 @@ function GaussianLaguerreDensity(n::Integer, m::Integer, beta::Real, x::Real)
 end
 function GaussianLaguerreDensity(c::Real, beta::Real, x::Real)
     #There is also a finite mass at 0 for c>1 of weight (1 - 1/c)
-    if c>1 && x==0 return Inf 
+    #if c>1 && x==0 return Inf end 
     am, ap = beta*(1-sqrt(c))^2, beta*(1-sqrt(c))^2
     sqrt((x-am)*(ap-x))/(2*pi*beta*x*c)
 end
@@ -242,7 +246,7 @@ function GaussianJacobiDensity(c1::Real, c2::Real, beta::Real, x::Real)
     if !(0<=c1<=1) error(string("Need 0<=c1<=1 but you have c1=", c1)) end  
     if !(beta==1) error(string("beta!=1 not implemented")) end
     #Finite mass at 0 of weight (1-1/c2)
-    if c2>1 && x==0 return Inf 
+    #if c2>1 && x==0 return Inf end
     b0=c1*x-c2*x-c1+2
     b1=-2c2*x^2+2x-3c1*x+c1+c2*x-1+2c1*x^2
     b2=c1*x-2c1*x^2+c2*x^2-x^3*c2+x^3*c1
