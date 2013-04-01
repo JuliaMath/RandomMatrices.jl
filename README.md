@@ -8,12 +8,40 @@ package to provide methods for working with matrix-valued random variables,
 a.k.a. random matrices. State of the art methods for computing random matrix
 samples and their associated distributions are provided.
 
+The names of the various ensembles can vary widely across disciplines. Where possible,
+synonyms are listed.
+
 ## License
 Copyright (c) 2013 [Jiahao Chen](https://github.com/jiahao) <jiahao@mit.edu>
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
 
 # Gaussian matrix ensembles
+
+Much of classical random matrix theory has focused on matrices with matrix elements comprised of
+independently and identically distributed (iid) real, complex or quaternionic Gaussians.
+(Traditionally, these are associated with a parameter `beta` tracking the number of independent
+real random variables per matrix element, i.e. `beta=1,2,4` respectively. This is also referred
+to as the Dyson 3-fold way.)
+Methods are provided for calculating random variates (samples) and various properties of these
+random matrices.
+
+The hierarchy of dense matrices provided are
+
+- Ginibre ensemble - all matrix elements are iid with no global symmetry
+- Hermite ensemble - one global symmetry
+  - Gaussian orthogonal ensemble (GOE, `beta=1`) - real and symmetric
+  - Gaussian unitary ensemble (GUE, `beta=2`) - complex and Hermitian
+  - Gaussian symplectic ensemble (GSE, `beta=4`) - quaternionic and self-dual
+- Circular ensemble - uniformly distributed with `|det|=1`
+  - Circular orthogonal ensemble (GOE, `beta=1`)
+  - Circular unitary ensemble (GUE, `beta=2`)
+  - Circular symplectic ensemble (GSE, `beta=4`)
+- Laguerre matrices = white Wishart matrices
+- Jacobi matrices = MANOVA matrices
+
+Unless otherwise specified, `beta=1,2,4` are supported. For the symplectic matrices `beta=4`,
+the 2x2 outer block-diagonal complex representation `USp(2N)` is used.
 
 ## Joint probability density functions (jpdfs)
 
@@ -48,8 +76,15 @@ Hermite, Laguerre(m) and Jacobi(m1, m2) ensembles.
   `GaussianJacobiSamples(n, m1, m2, beta)`
   return a set of `n` eigenvalues from the sparse random matrix samples
 
-(Note the parameters of the Laguerre and Jacobi ensembles are not yet defined consistently.
-For the first set of methods they are integers but for the rest they are reals.)
+- `HaarMatrix(n, beta)`
+  Generates a random matrix from the `beta`-circular ensemble.
+ - `HaarMatrix(n, beta, correction)` provides fine-grained control of what kind of correction
+   is applied to the raw QR decomposition. By default, `correction=1` (Edelman's correction) is
+   used. Other valid values are `0` (no correction) and `2` (Mezzadri's correction).
+ - `NeedsPiecewiseCorrection()` implements a simple test to see if a correction is necessary.
+
+The parameters `m`, `m1`, `m2` refer to the number to independent "data" degrees of freedom.
+For the dense samples these must be `Integer`s but can be `Real`s for the rest.
 
 # Formal power series
 
@@ -99,6 +134,19 @@ Famous distributions in random matrix theory
   This is also implemented for dense matrices, but it is pretty slow and
   not really practical.
 
+# Stochastic processes
+
+Provides finite-dimensional matrix representations of stochastic operators.
+
+In the following, `dt` is the time interval being discretized over and `t_end` is the final time.
+
+- `BrownianProcess(dt, t_end)` generates a vector corresponding to a Brownian random walk starting
+   from time `t=0` and position `x=0` 
+- `WhiteNoiceProcess(dt, t_end)` generates a vector corresponding to white noise.
+- `StochasticAiryProcess(dt, t_end, beta)` generates the largest eigenvalue corresponding to the
+   stochastic Airy process with real positive `beta`. This is known to be distributed in the `t_end -> Inf`
+   limit to the `beta`-Tracy-Widom law.
+
 # References
 - James Albrecht, Cy Chan, and Alan Edelman,
     "Sturm Sequences and Random Eigenvalue Distributions",
@@ -134,3 +182,7 @@ Famous distributions in random matrix theory
     Wiley-Interscience: New York, 1974
   [[worldcat]](http://www.worldcat.org/oclc/746035)
 
+- Frank Mezzadri,
+    "How to generate random matrices from the classical compact groups",
+    Notices of the AMS, vol. 54 (2007), pp592-604
+  [[arXiv]](http://arxiv.org/abs/math-ph/0609050)
