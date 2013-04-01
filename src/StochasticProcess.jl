@@ -1,5 +1,5 @@
 # Generates Brownian motion
-BrownianProcess(dx::Real, xend::Real) = WhiteNoise(dx, xend)
+BrownianProcess(dx::Real, xend::Real) = cumsum(WhiteNoise(dx, xend))
 
 # Generates a white noise process
 function WhiteNoiseProcess(dx::Real, xend::Real)
