@@ -38,23 +38,25 @@ function cycle_structure(P::Ptr{gsl_permutation})
 end
 
 #Returns a vector of indices (starting from 1 in the Julia convention)
-data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
+data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
+    pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
 
 # In random matrix theory one often encounters expressions of the form
 #
-#X = trace(Q * A * Q' * B)
+#X = Q * A * Q' * B
 #
-#where A and B are deterministic matrices with fixed numerical matrix entries and Q is a random matrix that does not have explicitly defined matrix elements. Instead, one takes an expectation over of expressions of this form and this "integrates out" the Qs to produce a numeric result.
+#where A and B are deterministic matrices with fixed numerical matrix entries
+#and Q is a random matrix that does not have explicitly defined matrix
+#elements. Instead, one takes an expectation over of expressions of this form
+#and this "integrates out" the Qs to produce a numeric result.
 #
 #expectation(X) #= some number
 #
-#I'm curious how far one can implement, in Julia, a data type for Q and expectation() method for which expressions of this form can be written natively as code. This probably strays into the larger question of how much symbolic algebra can be written and handled in Julia, but I think this would be have real payoffs for making possible extremely elegant manipulations of random matrices that doesn't exist in any known computer language.
-#
-#Any thoughts on how feasible this is? Perhaps to begin with, it would be nice to have an expectation() that would work on arbitrary strings of products of matrices. Probably this would involve taking an input expression argument Would like to hear some stuff on t would be nice to start with just how one can write  arbitrary products of matrices My initial thoughts are to declare Q::MyRandomMatrix with the type MyRandomMatrix<:AbstractMatrix and to write an expectation(Ex::Expr) function that at first blush traverses the expression Ex, finds a * that takes at least one MyRandomMatrix in its arguments and applies the appropriate substitution.
-#
-#So... 1) How feasible is this and 2) How do I traverse the expression in the way described in the previous paragraph? The "Metaprogramming" manual is somewhat sparse on this other than saying .args[], but that doesn't quite help
-
+#Here is a function that symbolically calculates the expectation of a product
+#of matrices over the symmetric group that Q is uniform Haar over.
+#It takes an expression consisting of a product of matrices and replaces it
+#with an evaluated symbolic expression which is the expectation.
 function Expectation(X::Expr)
     if X.head != :call
         error(string("Unexpected type of expression: ", X.head))
@@ -75,20 +77,18 @@ function Expectation(X::Expr)
     MyQ=None
     for i=1:n
         thingy=X.args[i+1]
-        if typeof(thingy)==Symbol
-            matrixtype = typeof(eval(thingy))
-            if matrixtype == HaarMatrix
+        if isa(thingy, Symbol)
+            if isa(eval(thingy), HaarMatrix)
                 if MyQ==None MyQ=thingy end
                 if MyQ == thingy
                     Qidx=[Qidx; i]
                 else
-                    println(string("only one instance of HaarMatrix supported, skipping the other guy ", thingy))
-                end
+                    warning("only one instance of HaarMatrix supported, skipping the other guy ", thingy) end
             else
                 Others = [Others; (thingy, i, i+1)]
             end
             println(i, ' ', thingy, "::", typeof(eval(thingy)))
-        elseif typeof(thingy)==Expr
+        elseif isa(thingy, Expr)
             println(i, ' ', thingy, "::Expr")
             if thingy.head==symbol('\'') && length(thingy.args)>=1 #Maybe this is a Q'
                 if typeof(thingy.args[1])==Symbol && typeof(eval(thingy.args[1]))==HaarMatrix
@@ -100,7 +100,6 @@ function Expectation(X::Expr)
             error(string("Unexpected token ", thingy ," of type ", typeof(thingy)))
         end
     end
-
     if length(Qidx) == length(Qpidx) == 0 return eval(X) end #nothing to do Haar-wise
     println(MyQ, " is in places ", Qidx)
     println(MyQ, "' is in places ", Qpidx)
@@ -112,9 +111,7 @@ function Expectation(X::Expr)
     ##################################
     # Step 2. Enumerate permutations #
     ##################################
-    AllTerms = :(+(A*B))
-    delete!(AllTerms.args, 2)
-    println("BEGINS WITH ", AllTerms)
+    AllTerms = {}
     for sigma in @task permutations_in_Sn(n)
         for tau in @task permutations_in_Sn(n)
             sigma_inv=permutation_inverse(sigma)
@@ -129,8 +126,8 @@ function Expectation(X::Expr)
             #Consolidate deltas
             Deltas=Dict()
             for i=1:n
-                Deltas[Qr[i]] = Qpr[i]
-                Deltas[Qidx[i]] =  Qpidx[data(sigma)[i]]
+                Deltas[Qr[i]] = Qpidx[data(sigma)[i]]
+                Deltas[Qidx[i]] =  Qpr[data(tau)[i]]
             end
             #Print deltas
             print("V(", cyclestruct, ") ")
@@ -142,7 +139,7 @@ function Expectation(X::Expr)
             end
             println()
             print("= V(", cyclestruct, ") ")
-            #Substitute
+            #Evaluate deltas over the indices of the other matrices
             ReindexedSymbols = []
             for (Symb, col_idx, row_idx) in Others
                 new_col, new_row = col_idx, row_idx
@@ -152,13 +149,13 @@ function Expectation(X::Expr)
                 ReindexedSymbols = [ReindexedSymbols; (Symb, new_col, new_row)]
             end
             println()
-            println(ReindexedSymbols)
-            println()
+            #TODO Parse coefficient
+            Coefficient = 1.0
             #Reconstruct expression
             println("START PARSING")
-            Symb, left_idx, right_idx = delete!(ReindexedSymbols, length(ReindexedSymbols))
+            println("The term is =", ReindexedSymbols[end])
+            Symb, left_idx, right_idx = pop!(ReindexedSymbols)#, length(ReindexedSymbols))
             Expression={{{Symb}, left_idx, right_idx}}
-            println("E =", Expression)
             while length(ReindexedSymbols) > 0
                 pop_idx = expr_idx = do_transpose = is_left = nothing
                 for expr_iter in enumerate(Expression)
@@ -197,55 +194,47 @@ function Expectation(X::Expr)
                 end
                 println("Terms left = ", ReindexedSymbols)
                 if pop_idx == nothing #Found nothing, start new expression blob
-                println("NEW EXPRBLOB: The term is =", ReindexedSymbols[1])
+                println("New word: The term is ", ReindexedSymbols[1])
                     Symb, left_idx, right_idx = delete!(ReindexedSymbols, 1)
-                    insert!(Expression, length(Expression)+1, {{Symb}, left_idx, right_idx})
+                    push!(Expression, {{Symb}, left_idx, right_idx})
                 else #Found something
-                println("The term is =", ReindexedSymbols[pop_idx])
+                    println("The term is =", ReindexedSymbols[pop_idx])
                     Symb, col_idx, row_idx = delete!(ReindexedSymbols, pop_idx)
                     Term = do_transpose ? Expr(symbol("'"), Symb) : Symb
-                        println(Expression[expr_idx])
-                        println(Expression[expr_idx][1])
                     if is_left
-                        println("insert left")
                         insert!(Expression[expr_idx][1], 1, Term)
                         Expression[expr_idx][2] = do_transpose ? row_idx : col_idx
                     else
-                        println("insert right")
-                        insert!(Expression[expr_idx][1],
-                        length(Expression[expr_idx][1])+1, Term)
+                        push!(Expression[expr_idx][1], Term)
                         Expression[expr_idx][3] = do_transpose ? col_idx : row_idx
                     end
                 end
-                println("E=",Expression)
             end
             println("DONE PARSING TREE")
 
             # Evaluate closed cycles
-            NewExpression=:(+(A*B))
-            delete!(NewExpression.args, 2)
-            println("HIHIHI", NewExpression.args)
-            for ExprBlob in Expression
-                if ExprBlob[2]==ExprBlob[3] #Have a cycle; this is a trace
-                    println(ExprBlob[1])
-                    ex=:(trace(A*B))
-                    println(ex.args[2].args)
-                    ex.args[2].args={:*; ExprBlob[1]...}
-                    println(ex)
-                    println(ex.args)
-                    insert!(NewExpression.args, length(NewExpression.args)+1, ex)
+            NewExpression={}
+            for ExprChunk in Expression
+                ExprBlob, start_idx, end_idx = ExprChunk
+                print(ExprChunk, " => ")
+                if start_idx == end_idx #Have a cycle; this is a trace
+                    ex= length(ExprBlob)==1 ? :(trace($(ExprBlob[1]))) : 
+                        Expr(:call, :trace, Expr(:call, :*, ExprBlob...))
                 else #Not a cycle, regular chain of multiplications
-                    ex=:(A*B)
-                    ex.args={:*; ExprBlob[1]...}
-                    insert!(NewExpression.args, length(NewExpression.args)+1, ex)
+                    ex= length(ExprBlob)==1 ? ExprBlob[1] :
+                        Expr(:call, :*, ExprBlob...)
                 end
+                push!(NewExpression, ex)
+                println(ex)
             end
-            println("Final expression is ", NewExpression)
-            insert!(AllTerms.args, length(AllTerms.args)+1, NewExpression)
+            ex = Expr(:call, :*, Coefficient, NewExpression...)
+            println("Final expression is: ", ex)
+            push!(AllTerms, ex)
         end
     end
-    println("THE ANSWER IS ", AllTerms)
-    eval(AllTerms)
+    X = length(AllTerms)==1 ? AllTerms[1] : Expr(:call, :+, AllTerms...)
+    println("THE ANSWER IS ", X)
+    eval(X)
 end
 
 
@@ -266,7 +255,6 @@ function part(n::Integer)
 end
 
 
-
 ###############
 # SANDBOX
 N=5
@@ -277,17 +265,17 @@ type HaarMatrix
 end
 Q = HaarMatrix(2)
 
-
 println("Case 1")
 println("E(A*B) = ", Expectation(:(A*B)))
 println("A*B/N = ", A*B)
 
 println("Case 2")
 println("tr(A)*tr(B)/N = ", trace(A)*trace(B)/N)
-#println("E(A*Q*B*Q') = ", Expectation(:(A*Q*B*Q')))
+println(trace(B)*A)
+println("E(A*Q*B*Q') = ", Expectation(:(A*Q*B*Q')))
 println("E.tr(A*Q*B*Q') = ", trace(Expectation(:(A*Q*B*Q'))))
 
-#println("Case 3")
-#println(Expectation(:(A*B)) == A*B)
-#println("E(A*Q*B*Q'*A*Q*B*Q') = ", Expectation(:(A*Q*B*Q'*A*Q*B*Q')))
+println("Case 3")
+println(Expectation(:(A*B)) == A*B)
+println("E(A*Q*B*Q'*A*Q*B*Q') = ", Expectation(:(A*Q*B*Q'*A*Q*B*Q')))
 
