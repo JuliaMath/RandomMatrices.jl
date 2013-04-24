@@ -1,4 +1,5 @@
 using GSL
+using Catalan
 
 function permutations_in_Sn(n::Integer)
     P = permutation_calloc(n)
@@ -29,10 +30,10 @@ function cycle_structure(P::Ptr{gsl_permutation})
     Pcanon = permutation_linear_to_canonical(P)
     PCANON = data(Pcanon)
     HaveNewCycleAtPos = [PCANON[i]>PCANON[i+1] for i=1:n-1]
-    cycleindices = [1]
-    for i=1:n-1 if HaveNewCycleAtPos[i] cycleindices = [cycleindices; i+1] end end
-    cycleindices = [cycleindices; n+1]
-    cyclestructure = [cycleindices[i+1]-cycleindices[i] for i=1:length(cycleindices)-1]
+    cycleindices = Int[1]
+    for i=1:n-1 if HaveNewCycleAtPos[i] push!(cycleindices, i+1) end end
+    push!(cycleindices, n+1)
+    cyclestructure = Int[cycleindices[i+1]-cycleindices[i] for i=1:length(cycleindices)-1]
     @assert sum(cyclestructure) == n
     cyclestructure
 end
@@ -149,12 +150,12 @@ function Expectation(X::Expr)
                 ReindexedSymbols = [ReindexedSymbols; (Symb, new_col, new_row)]
             end
             println()
-            #TODO Parse coefficient
-            Coefficient = 1.0
+            #Parse coefficient
+            Coefficient= WeingartenUnitary(perm)
             #Reconstruct expression
             println("START PARSING")
             println("The term is =", ReindexedSymbols[end])
-            Symb, left_idx, right_idx = pop!(ReindexedSymbols)#, length(ReindexedSymbols))
+            Symb, left_idx, right_idx = pop!(ReindexedSymbols)
             Expression={{{Symb}, left_idx, right_idx}}
             while length(ReindexedSymbols) > 0
                 pop_idx = expr_idx = do_transpose = is_left = nothing
@@ -237,6 +238,29 @@ function Expectation(X::Expr)
     eval(X)
 end
 
+#Computes the Weingarten function for permutations
+function WeingartenUnitary(P::Ptr{gsl_permutation})
+    C = cycle_structure(P)
+    WeingartenUnitary(C)
+end
+#Computes the Weingarten function for partitions
+function WeingartenUnitary(P::partition)
+    n = sum(P)
+    m = length(P)
+    thesum = 0.0
+    for irrep in @task part(n)
+        #Character of the partition
+        S = character(irrep, P)
+        #Character of the identity divided by n!
+        T = character_identity(irrep)
+        #Denominator f_r(N) of (2.10)
+        f = prod([factorial(BigInt(N + P[i] - i)) / factorial(BigInt(N - i))
+                for i=1:m])
+        thesum += S*T/(factorial(n)*f)
+        println(irrep, " ", thesum)
+    end
+    thesum
+end
 
 #Iterate over partitions of n in lexicographic order
 function part(n::Integer)
@@ -253,7 +277,6 @@ function part(n::Integer)
         end
     end
 end
-
 
 ###############
 # SANDBOX
