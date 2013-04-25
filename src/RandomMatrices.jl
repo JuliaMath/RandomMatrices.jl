@@ -1,4 +1,6 @@
 require("Distributions")
+require("Catalan")
+require("GSL")
 
 module RandomMatrices
     importall Distributions
@@ -18,4 +20,8 @@ module RandomMatrices
     
     #Formal power series
     include("FormalPowerSeries.jl")
+    
+    #Symbolic integrator of uniform Haar matrices
+    include("HaarSymbolic.jl")
+    include("HaarMeasure.jl")
 end #module

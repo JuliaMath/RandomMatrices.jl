@@ -1,6 +1,28 @@
 using GSL
 using Catalan
 
+export permutations_in_Sn, compose, cycle_structure, data, part #Functions working with partitions and permutations
+    UniformHaar, expectation, expectationtrace, WeingartenUnitary
+
+#Functions working with partitions and permutations
+# TODO Migrate these functions to Catalan
+
+#Iterate over partitions of n in lexicographic order
+function part(n::Integer)
+    if n==0 produce([]) end
+    if n<=0 return end
+    for p in @task part(n-1)
+        p = [p; 1]
+        produce(p)
+        p = p[1:end-1]
+        if length(p) == 1 || (length(p)>1 && p[end]<p[end-1])
+            p[end] += 1
+            produce(p)
+            p[end] -= 1
+        end
+    end
+end
+
 function permutations_in_Sn(n::Integer)
     P = permutation_calloc(n)
     while true 
@@ -42,7 +64,11 @@ end
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
-
+immutable UniformHaar <: ContinuousMatrixDistribution
+    beta::Float64
+    N::Integer
+end
+    
 # In random matrix theory one often encounters expressions of the form
 #
 #X = Q * A * Q' * B
@@ -58,7 +84,7 @@ data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
 #of matrices over the symmetric group that Q is uniform Haar over.
 #It takes an expression consisting of a product of matrices and replaces it
 #with an evaluated symbolic expression which is the expectation.
-function Expectation(X::Expr)
+function expectation(X::Expr)
     if X.head != :call
         error(string("Unexpected type of expression: ", X.head))
     end
@@ -238,6 +264,8 @@ function Expectation(X::Expr)
     eval(X)
 end
 
+expectationtrace(X::Expr)=trace(expectation(X))
+
 #Computes the Weingarten function for permutations
 function WeingartenUnitary(P::Ptr{gsl_permutation})
     C = cycle_structure(P)
@@ -261,44 +289,4 @@ function WeingartenUnitary(P::partition)
     end
     thesum
 end
-
-#Iterate over partitions of n in lexicographic order
-function part(n::Integer)
-    if n==0 produce([]) end
-    if n<=0 return end
-    for p in @task part(n-1)
-        p = [p; 1]
-        produce(p)
-        p = p[1:end-1]
-        if length(p) == 1 || (length(p)>1 && p[end]<p[end-1])
-            p[end] += 1
-            produce(p)
-            p[end] -= 1
-        end
-    end
-end
-
-###############
-# SANDBOX
-N=5
-A=randn(N,N)
-B=randn(N,N)
-type HaarMatrix
-    beta::Real
-end
-Q = HaarMatrix(2)
-
-println("Case 1")
-println("E(A*B) = ", Expectation(:(A*B)))
-println("A*B/N = ", A*B)
-
-println("Case 2")
-println("tr(A)*tr(B)/N = ", trace(A)*trace(B)/N)
-println(trace(B)*A)
-println("E(A*Q*B*Q') = ", Expectation(:(A*Q*B*Q')))
-println("E.tr(A*Q*B*Q') = ", trace(Expectation(:(A*Q*B*Q'))))
-
-println("Case 3")
-println(Expectation(:(A*B)) == A*B)
-println("E(A*Q*B*Q'*A*Q*B*Q') = ", Expectation(:(A*Q*B*Q'*A*Q*B*Q')))
 
