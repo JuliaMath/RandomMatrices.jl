@@ -1,8 +1,8 @@
 using GSL
 using Catalan
 
-export permutations_in_Sn, compose, cycle_structure, data, part, #Functions working with partitions and permutations
-    UniformHaar, expectation, expectedtrace, WeingartenUnitary
+export permutations_in_Sn, compose, cycle_structure, data, part #Functions working with partitions and permutations
+    UniformHaar, expectation, WeingartenUnitary
 
 #Functions working with partitions and permutations
 # TODO Migrate these functions to Catalan
@@ -10,7 +10,7 @@ export permutations_in_Sn, compose, cycle_structure, data, part, #Functions work
 #Iterate over partitions of n in lexicographic order
 function part(n::Integer)
     if n==0 produce([]) end
-    if n<0 return end
+    if n<=0 return end
     for p in @task part(n-1)
         p = [p; 1]
         produce(p)
@@ -64,12 +64,11 @@ end
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
-immutable UniformHaar <: ContinuousMatrixDistribution
-    beta::Float64
-    N::Int
-    UniformHaar(beta::Real, N::Integer) = new(float64(beta), int(N))
+
+type UniformHaar <: AbstractMatrix
+    beta::Real
 end
-    
+
 # In random matrix theory one often encounters expressions of the form
 #
 #X = Q * A * Q' * B
@@ -79,21 +78,19 @@ end
 #elements. Instead, one takes an expectation over of expressions of this form
 #and this "integrates out" the Qs to produce a numeric result.
 #
-#expectation(Q, X) #= some number
+#expectation(X) #= some number
 #
 #Here is a function that symbolically calculates the expectation of a product
 #of matrices over the symmetric group that Q is uniform Haar over.
 #It takes an expression consisting of a product of matrices and replaces it
 #with an evaluated symbolic expression which is the expectation.
-expectation(N::Integer, MyQ::Symbol, X::Symbol) = Q==X ? 0 : X
-expectation(N::Integer, MyQ::Symbol, X::Expr) = expectation(N, MyQ, X, false)
-function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
+function expectation(X::Expr)
     if X.head != :call
         error(string("Unexpected type of expression: ", X.head))
     end
     
     n = length(X.args) - 1
-    if n < 1 return X end #nothing to do Haar-wise
+    if n < 1 return eval(X) end #nothing to do Haar-wise
     
     if X.args[1] != :*
         error("Unexpected expression, only products supported")
@@ -104,60 +101,58 @@ function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
     Qidx=[] #Indices for Haar matrices
     Qpidx=[] #Indices for ctranspose of Haar matrices
     Others=[]
+    MyQ=None
     for i=1:n
         thingy=X.args[i+1]
         if isa(thingy, Symbol)
-            if thingy == MyQ
-                Qidx=[Qidx; i]
+            if isa(eval(thingy), UniformHaar)
+                if MyQ==None MyQ=thingy end
+                if MyQ == thingy
+                    Qidx=[Qidx; i]
+                else
+                    warning("only one instance of UniformHaar supported, skipping the other guy ", thingy) end
             else
                 Others = [Others; (thingy, i, i+1)]
             end
-            println(i, ' ', thingy)
+            println(i, ' ', thingy, "::", typeof(eval(thingy)))
         elseif isa(thingy, Expr)
+            println(i, ' ', thingy, "::Expr")
             if thingy.head==symbol('\'') && length(thingy.args)>=1 #Maybe this is a Q'
-                if typeof(thingy.args[1])==Symbol && thingy.args[1] == MyQ
-                    println(i, ' ', thingy, "::", MyQ,"'")
+                if isa(thingy.args[1], Symbol) && isa(eval(thingy.args[1]), UniformHaar)
+                    println("Here is a Qtranspose")
                     Qpidx=[Qpidx; i]
                 end
             end
         else
-            error(string("Unexpected subexpression ", thingy ," of type ", typeof(thingy)))
+            error(string("Unexpected token ", thingy ," of type ", typeof(thingy)))
         end
     end
-    if length(Qidx) == length(Qpidx) == 0 return X end #nothing to do Haar-wise
+    if length(Qidx) == length(Qpidx) == 0 return eval(X) end #nothing to do Haar-wise
     println(MyQ, " is in places ", Qidx)
     println(MyQ, "' is in places ", Qpidx)
 
-    M = length(Qidx)
+    n = length(Qidx)
     #If there are different Qs and Q's, the answer is a big fat 0
-    #TODO return correct size of 0
-    if M != length(Qpidx) return 0 end
+    if n != length(Qpidx) return zeros(size(eval(X.args[2]),1)...) end
 
     ##################################
     # Step 2. Enumerate permutations #
     ##################################
     AllTerms = {}
-    for sigma in @task permutations_in_Sn(M)
-        for tau in @task permutations_in_Sn(M)
+    for sigma in @task permutations_in_Sn(n)
+        for tau in @task permutations_in_Sn(n)
             sigma_inv=permutation_inverse(sigma)
             #Compose the permutations
             perm=compose(sigma_inv, tau)
             
-            #Compute cycle structure, i.e. lengths of each
-            #cycle in the cycle factorization of the
-            #permutatation
+            #Compute cycle structure, i.e. lengths of each cycle in the cycle
+            #factorization of the permutatation
             cyclestruct = cycle_structure(perm)
             Qr = Int64[n+1 for n in Qidx]
             Qpr= Int64[Qpidx[n]+1 for n in data(tau)]
-            #Change indices to wrap around if this is a
-            #trace expression
-            if dotrace
-                Qr[Qr.==n+1]=1
-                Qpr[Qpr.==n+1]=1
-            end
             #Consolidate deltas
             Deltas=Dict()
-            for i=1:M
+            for i=1:n
                 Deltas[Qr[i]] = Qpidx[data(sigma)[i]]
                 Deltas[Qidx[i]] =  Qpr[data(tau)[i]]
             end
@@ -171,8 +166,7 @@ function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
             end
             println()
             print("= V(", cyclestruct, ") ")
-            #Evaluate deltas over the indices of the other
-            #matrices
+            #Evaluate deltas over the indices of the other matrices
             ReindexedSymbols = []
             for (Symb, col_idx, row_idx) in Others
                 new_col, new_row = col_idx, row_idx
@@ -183,8 +177,7 @@ function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
             end
             println()
             #Parse coefficient
-            Coefficient= WeingartenUnitary(N, perm)
-            println("V(",cyclestruct,") = ",Coefficient)
+            Coefficient= WeingartenUnitary(perm)
             #Reconstruct expression
             println("START PARSING")
             println("The term is =", ReindexedSymbols[end])
@@ -268,19 +261,16 @@ function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
     end
     X = length(AllTerms)==1 ? AllTerms[1] : Expr(:call, :+, AllTerms...)
     println("THE ANSWER IS ", X)
-    X
+    eval(X)
 end
-
-expectedtrace(N::Integer, MyQ::Symbol, X::Expr)=expectation(N, MyQ, X, true)
 
 #Computes the Weingarten function for permutations
-function WeingartenUnitary(N::Integer, P::Ptr{gsl_permutation})
+function WeingartenUnitary(P::Ptr{gsl_permutation})
     C = cycle_structure(P)
-    WeingartenUnitary(N, C)
+    WeingartenUnitary(C)
 end
 #Computes the Weingarten function for partitions
-function WeingartenUnitary(N::Integer, P::partition)
-    println("Computing Weingarten function of ", P)
+function WeingartenUnitary(P::partition)
     n = sum(P)
     m = length(P)
     thesum = 0.0
@@ -295,6 +285,6 @@ function WeingartenUnitary(N::Integer, P::partition)
         thesum += S*T/(factorial(n)*f)
         println(irrep, " ", thesum)
     end
-    float64(thesum)
+    thesum
 end
 
