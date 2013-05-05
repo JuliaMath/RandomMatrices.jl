@@ -9,8 +9,8 @@
 t=1000000
 dx=.2
 v=randn(t)
-grid=[-4:dx:4]
-count=hist(v,grid)/(t*dx)
+grid=-4:dx:4
+count=hist(v,grid)[2]/(t*dx)
 
 ## Theory
 x=grid
@@ -19,8 +19,13 @@ y=exp(-x.^2/2)/sqrt(2*pi)
 ## Plot
 using Winston
 p = FramedPlot()
-h = Histogram(count, dx)
-h.x0 = grid[1]
+h = Histogram(count, step(grid))
+h.x0 = first(grid)
 add(p, h)
 add(p, Curve(x, y, "color", "blue", "linewidth", 2)) 
-file(p, "bellcurve.png")
+if isinteractive()
+    Winston.display(p)
+else
+    file(p, "bellcurve.png")
+end
+

@@ -28,5 +28,9 @@ end
 using Winston
 p = FramedPlot()
 add(p, Curve(t, f2, "linewidth", 2))
-file(p, "tracywidom.png")
+if isinteractive()
+    Winston.display(p)
+else
+    file(p, "tracywidom.png")
+end
 
