@@ -6,20 +6,19 @@
 #Theory:      The normal distribution curve
 
 ## Experiment
-t=1000000
-dx=.2
-v=randn(t)
-grid=-4:dx:4
-count=hist(v,grid)[2]/(t*dx)
+t = 1000000
+dx = .2
+v = randn(t)
+x = -4:dx:4
+grid,count = hist(v,x)
 
 ## Theory
-x=grid
-y=exp(-x.^2/2)/sqrt(2*pi)
+y = exp(-x.^2/2)/sqrt(2*pi)
 
 ## Plot
 using Winston
 p = FramedPlot()
-h = Histogram(count, step(grid))
+h = Histogram(count/(t*dx), step(grid))
 h.x0 = first(grid)
 add(p, h)
 add(p, Curve(x, y, "color", "blue", "linewidth", 2)) 
