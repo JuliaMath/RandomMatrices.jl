@@ -5,12 +5,11 @@
 #Plot:        Histogram of the eigenvalues
 #Theory:      Semicircle as n->infinity
 
-function semicircle_experiment(
-    ## Parameters
-    n=1000,      # matrix size
-    t=10,        # trials
-    dx=.2,       # binsize
-)
+## Parameters
+n=1000       # matrix size
+t=10         # trials
+dx=.2        # binsize
+function semicircle_experiment(n,t,dx)
     ## Experiment
     v=Float64[] # eigenvalue samples
     for i = 1:t
@@ -22,7 +21,7 @@ function semicircle_experiment(
     count=hist(v,grid)[2]/(n*t*dx)
     (grid, count)
 end
-grid,count = semicircle_experiment()
+grid,count = semicircle_experiment(n,t,dx)
 
 ## Theory
 x=[-2:dx:2]

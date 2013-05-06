@@ -7,12 +7,11 @@
 
 include("tracywidom.jl")
 
-function largeeig_experiment(
-    ## Parameters
-    n=100,       # matrix size
-    t=5000,      # trials
-    dx=.2,       # binsize
-)
+## Parameters
+n=100        # matrix size
+t=5000       # trials
+dx=.2        # binsize
+function largeeig_experiment(n,t,dx)
     ## Experiment
     v=Float64[] # eigenvalue samples
     for i=1:t
@@ -26,7 +25,7 @@ function largeeig_experiment(
     count=hist(v,grid)[2]/(t*dx)
     (grid, count)
 end
-(grid, count) = largeeig_experiment()
+(grid, count) = largeeig_experiment(n,t,dx)
 
 ## Theory
 (t, f) = tracywidom(5., -8.)
