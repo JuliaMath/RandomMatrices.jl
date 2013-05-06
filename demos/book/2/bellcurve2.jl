@@ -7,7 +7,7 @@
 
 
 ## Experiment
-t = 1000000     # Trials
+t = 10000     # Trials
 dx = 0.25       # binsize
 v = randn(t,2)  # samples
 x = -4:dx:4   # range
@@ -15,6 +15,7 @@ x = -4:dx:4   # range
 ## Plot
 using Winston
 module Plot3D
+    using Winston
     # Warning: the 3D interface is very new at the time
     # of writing this and is likely to not be available
     # and/or have changed
@@ -25,7 +26,10 @@ module Plot3D
     end
 end
 edg1, edg2, count = hist2(v, x-dx/2)
-cntrs = (first(x)+dx/2, last(x)-dx/2, length(x)-1)
-x,y = meshgrid(cntrs, cntrs)
-Plot3D.plot3d(Plot3D.surf(x,y,count./(t*dx^2) *10*length(cntrs)))
-Plot3D.plot3d(Plot3D.surf(x,y,exp(-(x.^2+y.^2)/2)/(2*pi) *10*length(cntrs)))
+#cntrs = ((first(x)+dx/2), (last(x)-dx/2), length(x)-1)
+#x,y = meshgrid(cntrs, cntrs)
+cntrs = (first(x)+dx/2):dx:(last(x)-dx/2)
+x = Float64[x for x = cntrs, y = cntrs]
+y = Float64[y for x = cntrs, y = cntrs]
+Plot3D.plot3d(Plot3D.surf(x,count./(t*dx^2) *50,y))
+Plot3D.plot3d(Plot3D.surf(x,exp(-(x.^2+y.^2)/2)/(2*pi) *50,y))
