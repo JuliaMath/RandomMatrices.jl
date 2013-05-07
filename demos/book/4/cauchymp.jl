@@ -1,4 +1,4 @@
-#achchymp.jl
+#cauchymp.jl
 #Algorithm 4.1 of Random Eigenvalues by Alan Edelman
 
 #Experiment:    Calculate Cauchy transform as trace of resolvent of Wishart matrix

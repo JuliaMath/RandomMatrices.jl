@@ -2,6 +2,7 @@
 #Algorithm 1.3 of Random Eigenvalues by Alan Edelman
 
 #Theory:      Compute and plot the Tracy-Widom distribution
+#See also:    RandomMatrices.TracyWidom(t) for tn=-8
 
 ##Parameters
 t0=5.         # right endpoint

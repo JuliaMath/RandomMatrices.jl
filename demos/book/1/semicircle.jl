@@ -4,6 +4,7 @@
 #Experiment:  Sample random symmetric Gaussian matrices
 #Plot:        Histogram of the eigenvalues
 #Theory:      Semicircle as n->infinity
+#See also:    RandomMatrices.SemiCircle Distribution
 
 ## Parameters
 n=1000       # matrix size
