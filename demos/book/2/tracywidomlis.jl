@@ -11,18 +11,27 @@ n = 6^6         # length of permutations
 dx = 1/6        # bin size
 
 ## Experiment
-include("patiencesort.jl")
+require("patiencesort.jl")
 function tracywidomlis(t, n, dx)
-    v = zeros(t) # samples
-    for i=1:t
-        v[i] = patiencesort(randperm(n))
-    end
+    ## single processor: 1x speed
+    #v = [patiencesort(randperm(n)) for i = 1:t]
+
+    ## simple parallelism: Nx speed * 130%
+    v = pmap((i)->patiencesort(randperm(n)), 1:t)
+
+    ## maximum parallelism: Nx speed
+    #grouped = floor(t/(nprocs()-2))
+    #println(grouped)
+    #v = vcat(pmap((i)->[patiencesort(randperm(n)) for j = 1:grouped], 1:t/grouped)...)
+
     w = (v-2sqrt(n))/n^(1/6)
     return hist(w, -5:dx:2)
 end
-grid, count = tracywidomlis(t, n, dx)
+@time grid, count = tracywidomlis(t, n, dx)
 
 ## Plot
+using Winston
+p = FramedPlot()
 h = Histogram(count/(t*dx), step(grid))
 h.x0 = first(grid)
 include("../1/tracywidom.jl")

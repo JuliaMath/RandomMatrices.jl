@@ -27,4 +27,4 @@ function unitarylis(t, n, k)
     return (z, c)
 end
 
-unitarylis(t, n, k)
+println(unitarylis(t, n, k))
