@@ -11,7 +11,7 @@ r = 1           # aspect ratio
 n = 100         # matrix column size
 dx = 0.1        # binsize
 
-function mp_experiment()
+function mp_experiment(n,r,t,dx)
     m = iround(n/r)
     ## Experiment
     v = Float64[]          # eigenvalue samples
@@ -28,7 +28,7 @@ function mp_experiment()
     y = real(sqrt((x.^2-a^2).*(2^2-x.^2) + 0im)./(pi*x*r))
     return (hist(v, x), (x, y))
 end
-((grid, count), (x,y)) = mp_experiment()
+((grid, count), (x,y)) = mp_experiment(n,r,t,dx)
 
 ## Plot
 using Winston

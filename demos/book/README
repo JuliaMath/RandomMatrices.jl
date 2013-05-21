@@ -2,7 +2,7 @@ The codes in this folder are translations of MATLAB code by Alan Edelman in his 
 
 It is intended that these codes can be run in batch mode to generate the sample figures as output files, but that the codes are most useful when used interactively in the exploration of random matrix theory. For this reason, when run from the Julia REPL, the plots will be output to the screen.
 
-Additional codes should use the following template (modified from book/4/mpexperiment.jl). While some experiments will need to be single-threaded, many codes in Random Matrix Theory are Monte Carlo simulations which are trivial to parallelize using the pmap function. To make use of the parallelism this provides, either start Julia with the `-p N` flag or run `addprocs(N-1)` at the REPL (where N>=3 and equals CPU_CORES+1 optimally). When doing Julia-level parallelism, it is typically best to disable OpenBLAS parallelism by calling `Base.openblas_set_num_threads(1)`.
+Additional codes should use the following template (modified from book/4/mpexperiment.jl). While some experiments will need to be single-threaded, many codes in Random Matrix Theory are Monte Carlo simulations which are trivial to parallelize using the pmap function. To make use of the parallelism this provides, either start Julia with the `-p N` flag or run `addprocs(N-1)` at the REPL (where N>=3 and equals CPU_CORES+1 optimally). When doing Julia-level parallelism, it is typically best to disable OpenBLAS parallelism by calling `Base.openblas_set_num_threads(1)`. Run code at the REPL using `include("<filename.jl>")` so that it is run only on the local processor (`require` is run on all processors).
 
 ```julia
 #<filename>.jl
@@ -17,7 +17,7 @@ t = 10000       # trials
 n = 100         # matrix column size
 dx = 0.1        # binsize
 
-function mp_experiment(t,n,dx) # wrap the experimental logic in a function to enable faster JIT
+function an_experiment(t,n,dx) # wrap the experimental logic in a function to enable faster JIT
     ## Experiment
 
     #Single threaded experiment
@@ -35,7 +35,7 @@ function mp_experiment(t,n,dx) # wrap the experimental logic in a function to en
     y = x .^ 2
     return (hist(v, x), (x, y))
 end
-((grid, count), (x,y)) = mp_experiment(t,n,dx) #run the experiment, making the global variables local for speed
+((grid, count), (x,y)) = an_experiment(t,n,dx) #run the experiment, making the global variables local for speed
 
 ## Plot
 using Winston
