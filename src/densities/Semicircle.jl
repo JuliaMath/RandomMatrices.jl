@@ -2,7 +2,6 @@
 
 importall Distributions
 using Catalan
-using GSL #needed for hypergeom
 export Semicircle
 
 type Semicircle <: ContinuousUnivariateDistribution
@@ -66,36 +65,42 @@ std(X::Semicircle)=X.radius/2
 var(X::Semicircle)=std(X)^2
 
 # moment of distribution
-function moment(X::Semicircle, order::Integer)
+if _HAVE_GSL
+  function moment(X::Semicircle, order::Integer)
     a, r = X.mean, X.radius
     if X.mean != 0 
-        a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
+      a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
     else
-        order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
+      order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
     end
+  end
+else
+  function moment(X::Semicircle, order::Integer)
+    error("The moment of a semicircle distribution requires the GSL module to be loaded.")
+  end
 end
 
 # cumulant of distribution
 function cumulant(X::Semicircle, order::Integer)
-    if X.mean != 0 error("not supported") end
-    if order%2
-        order==0 ? 1 : (0.5*r)^(2n) * lassalle(order/2) 
-    else
-        0
-    end
+  if X.mean != 0 error("not supported") end
+  if order%2
+    order==0 ? 1 : (0.5*r)^(2n) * lassalle(order/2) 
+  else
+    0
+  end
 end
 
 # free cumulant of distribution
 function freecumulant(X::Semicircle, order::Integer)
-    if order == 0
-        return 1
-    elseif order == 1
-        return mean(X)
-    elseif order == 2
-        return var(X)
-    else
-        return 0
-    end
+  if order == 0
+    return 1
+  elseif order == 1
+    return mean(X)
+  elseif order == 2
+    return var(X)
+  else
+    return 0
+  end
 end
 
 
@@ -104,14 +109,14 @@ end
 
 # characteristic function 
 function cf(X::Semicircle, t::Real)
-    r = t * X.mean
-    2 * besselj(1, r)/r
+  r = t * X.mean
+  2 * besselj(1, r)/r
 end
 
 # moment generating function
 function mgf(X::Semicircle, t::Real)
-    r = t * X.mean
-    2 * besseli(1, r)/r
+  r = t * X.mean
+  2 * besseli(1, r)/r
 end
 
 #Sampling methods
@@ -120,8 +125,8 @@ end
 # random sampler
 # Use relationship with beta distribution
 function rand(X::Semicircle)
-    Y = rand(Beta(1.5, 1.5))
-    X.mean + 2 * X.radius * Y - X.radius
+  Y = rand(Beta(1.5, 1.5))
+  X.mean + 2 * X.radius * Y - X.radius
 end
 
 
