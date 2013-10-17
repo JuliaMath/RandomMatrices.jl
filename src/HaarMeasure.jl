@@ -21,7 +21,7 @@ import Base.rand
 #    Edelman and Rao, 2005
 #    Mezzadri, 2006, math-ph/0609050
 #TODO implement O(n^2) method
-function rand(W::UniformHaar, doCorrection::Integer)
+function rand(W::Haar, doCorrection::Integer)
     n, beta = W.N, W.beta
     M=rand(Ginibre(n, beta))
     q,r=qr(M)
@@ -54,7 +54,7 @@ end
 #By default, always do piecewise correction
 #For most applications where you use the HaarMatrix as a similarity transform
 #it doesn't matter, but better safe than sorry... let the user choose else
-rand(W::UniformHaar) = rand(W, 1)
+rand(W::Haar) = rand(W, 1)
 
 #A utility method to check if the piecewise correction is needed
 #This checks the R part of the QR factorization; if correctly done,

@@ -4,7 +4,7 @@ importall Distributions
 using Catalan
 export Semicircle
 
-type Semicircle <: ContinuousUnivariateDistribution
+immutable Semicircle <: ContinuousUnivariateDistribution
     mean::Float64
     radius::Float64
     Semicircle(mu, r) = r > 0 ? new(float64(mu), float64(r)) : 

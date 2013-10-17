@@ -1,15 +1,31 @@
+#Matrices related to stochastic processes
+
+abstract StochasticProcess
+export evolve
+
+immutable BrownianProcess <: StochasticProcess
+end
+
 # Generates Brownian motion
-BrownianProcess(dx::Real, xend::Real) = cumsum(WhiteNoise(dx, xend))
+evolve(p::BrownianProcess, dx::Real, xend::Real) = cumsum(WhiteNoiseProcess(dx, xend))
 
 # Generates a white noise process
 function WhiteNoiseProcess(dx::Real, xend::Real)
-    x=[0:dx:xend]
-    dW=randn(length(x),1)*sqrt(dx)
+  x=[0:dx:xend]
+  randn(length(x),1)*sqrt(dx)
+end
+
+################
+# Airy process #
+################
+
+immutable AiryProcess <: StochasticProcess
+  beta::Real
 end
 
 # Calculates the largest eigenvalue of a stochastic Airy process
 # with Brownian noise
-function StochasticAiryProcess(dx::Real, xend::Real, beta::Real)
+function evolve(p::AiryProcess, dx::Real, xend::Real)
     x=[0:dx:xend]
     N=length(x)
 
@@ -18,14 +34,14 @@ function StochasticAiryProcess(dx::Real, xend::Real, beta::Real)
     b=+(1/dx^2)*ones(N-1)
     #Plus noise
     dW=WhiteNoiseProcess(dx, xend)
-    a+=(2/sqrt(beta))*dW/dx
+    a+=(2/sqrt(p.beta))*dW/dx
 
     maxeig(SymTridiagonal(a,b))
 end
 
 #Sample program
 #t=10000 #number of trials
-#v=[StochasticAiryProcess(0.001, 10, 2) for i=1:t]
+#v=[AiryProcess(0.001, 10, 2) for i=1:t]
 #binsize=.2
 #grid=[-5:binsize:2]
 #x=hist(v, grid)

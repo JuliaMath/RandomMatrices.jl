@@ -26,14 +26,27 @@ typealias Dim2 (Int, Int) #Dimensions of a rectangular matrix
 #Classical Gaussian matrix ensembles
 include("GaussianEnsembles.jl")
 
+
 # Classical univariate distributions
 include("densities/Semicircle.jl")
 include("densities/TracyWidom.jl")
 
-#Fast histogrammer for matrix eigenvalues
+#Generating matrices of Haar measure
+include("Haar.jl")
+include("HaarMeasure.jl")
+include("HaarSymbolic.jl")
+
+#Fast histogrammer for matrix eigenvalues - hist_eig
 include("FastHistogram.jl")
 
 #Formal power series
 include("FormalPowerSeries.jl")
+
+#Statistical tests based on random matrix theory
+include("StatisticalTests.jl")
+
+#Stochastic processes
+include("StochasticProcess.jl")
+
 end
 

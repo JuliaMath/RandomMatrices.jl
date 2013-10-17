@@ -1,9 +1,10 @@
-using GSL
 using Catalan
 
-export permutations_in_Sn, compose, cycle_structure, data, part #Functions working with partitions and permutations
-    UniformHaar, expectation, WeingartenUnitary
+export permutations_in_Sn, compose, cycle_structure, data, part, #Functions working with partitions and permutations
+    partition, Haar, expectation, WeingartenUnitary
 
+
+typealias partition Vector{Int}
 #Functions working with partitions and permutations
 # TODO Migrate these functions to Catalan
 
@@ -30,6 +31,9 @@ function permutations_in_Sn(n::Integer)
         try permutation_next(P) catch break end
     end
 end
+
+
+if _HAVE_GSL
 
 function compose(P::Ptr{gsl_permutation}, Q::Ptr{gsl_permutation})
     #Compose the permutations
@@ -64,8 +68,10 @@ end
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
+end #_HAVE_GSL
 
-type UniformHaar <: AbstractMatrix
+
+type Haar <: ContinuousMatrixDistribution
     beta::Real
 end
 
@@ -105,12 +111,12 @@ function expectation(X::Expr)
     for i=1:n
         thingy=X.args[i+1]
         if isa(thingy, Symbol)
-            if isa(eval(thingy), UniformHaar)
+            if isa(eval(thingy), Haar)
                 if MyQ==None MyQ=thingy end
                 if MyQ == thingy
                     Qidx=[Qidx; i]
                 else
-                    warning("only one instance of UniformHaar supported, skipping the other guy ", thingy) end
+                    warning("only one instance of Haar supported, skipping the other guy ", thingy) end
             else
                 Others = [Others; (thingy, i, i+1)]
             end
@@ -118,7 +124,7 @@ function expectation(X::Expr)
         elseif isa(thingy, Expr)
             println(i, ' ', thingy, "::Expr")
             if thingy.head==symbol('\'') && length(thingy.args)>=1 #Maybe this is a Q'
-                if isa(thingy.args[1], Symbol) && isa(eval(thingy.args[1]), UniformHaar)
+                if isa(thingy.args[1], Symbol) && isa(eval(thingy.args[1]), Haar)
                     println("Here is a Qtranspose")
                     Qpidx=[Qpidx; i]
                 end
@@ -264,11 +270,16 @@ function expectation(X::Expr)
     eval(X)
 end
 
+if _HAVE_GSL
+
 #Computes the Weingarten function for permutations
 function WeingartenUnitary(P::Ptr{gsl_permutation})
     C = cycle_structure(P)
     WeingartenUnitary(C)
 end
+
+end #_HAVE_GSL
+
 #Computes the Weingarten function for partitions
 function WeingartenUnitary(P::partition)
     n = sum(P)

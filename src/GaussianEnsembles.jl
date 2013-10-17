@@ -13,7 +13,8 @@
 # Alan Edelman, Per-Olof Persson and Brian D Sutton, "The fourfold way"
 # http://www-math.mit.edu/~edelman/homepage/papers/ffw.pdf
 
-export Wigner, GaussianHermite, GaussianLaguerre, GaussianJacobi 
+export GaussianHermite, GaussianLaguerre, GaussianJacobi,
+       Wigner, Wishart, MANOVA #Synonyms for Hermite, Laguerre and Jacobi
 
 #A convenience function to define a chi scalar random variable
 chi(df::Real) = sqrt(rand(Chisq(df)))
@@ -25,7 +26,7 @@ chi(df::Real) = sqrt(rand(Chisq(df)))
 type GaussianHermite <: ContinuousMatrixDistribution
   beta::Real
 end
-typealias Wigner GaussianHermite
+typealias Wigner  GaussianHermite
 
 # Generates a NxN symmetric Wigner matrix
 function rand(d::GaussianHermite, n::Integer)
@@ -41,7 +42,7 @@ function rand(d::GaussianHermite, n::Integer)
   else
     error(@sprintf("beta = %d is not implemented", d.beta))
   end
-  normalization = sqrt(2*d.beta)
+  normalization = sqrt(2*d.beta*n)
   return (A + A') / normalization
 end
 
@@ -63,7 +64,6 @@ tridrand(d::GaussianHermite, dims::Dim2) = dims[1]==dims[2] ? tridrand(d, dims[1
 #Return n eigenvalues distributed according to the Hermite ensemble
 eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, b))
 
-
 #Calculate Vandermonde determinant term
 function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
   n = length(lambda)
@@ -83,10 +83,7 @@ function eigvaljpdf{Eigenvalue<:Number}(d::GaussianHermite, lambda::Vector{Eigen
   for j=1:n
     c *= gamma(1 + beta/2)/gamma(1 + beta*j/2)
   end
-
-  #Calculate argument of exponential
-  Energy = sum(lambda.^2/2)
-
+  Energy = sum(lambda.^2/2) #Calculate argument of exponential
   VandermondeDeterminant(lambda, beta) * exp(-Energy)
 end
 
@@ -100,6 +97,8 @@ type GaussianLaguerre <: ContinuousMatrixDistribution
   beta::Real
   a::Real
 end
+typealias Wishart GaussianLaguerre
+
  
 #Generates a NxN Hermitian Wishart matrix
 #TODO Check - the eigenvalue distribution looks funky
@@ -172,6 +171,7 @@ type GaussianJacobi <: ContinuousMatrixDistribution
   a::Real
   b::Real
 end
+typealias MANOVA  GaussianJacobi
 
 function rand(d::GaussianJacobi, m::Integer)
   w1 = Wishart(m, int(2.0*d.a/d.beta), d.beta)
