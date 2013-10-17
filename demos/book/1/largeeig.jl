@@ -10,18 +10,22 @@ include("tracywidom.jl")
 ## Parameters
 n=100        # matrix size
 t=5000       # trials
-v=[]         # eigenvalue samples
 dx=.2        # binsize
-grid=[-5:dx:2]
-## Experiment
-for i=1:t
-    a=randn(n,n)+im*randn(n,n) # random nxn complex matrix
-    s=(a+a')/2                 # Hermitian matrix
-    v=[v; max(eig(s)[1])]         # Largest Eigenvalue
-end
-v=n^(1/6)*(v-2*sqrt(n))        # normalized eigenvalues
+function largeeig_experiment(n,t,dx)
+    ## Experiment
+    v=Float64[] # eigenvalue samples
+    for i=1:t
+        a=randn(n,n)+im*randn(n,n) # random nxn complex matrix
+        s=(a+a')/2                 # Hermitian matrix
+        push!(v,max(eig(s)[1]))    # Largest Eigenvalue
+    end
+    v=n^(1/6)*(v-2*sqrt(n))        # normalized eigenvalues
 
-count=hist(v,grid)/(t*dx)
+    grid=-5:dx:2
+    count=hist(v,grid)[2]/(t*dx)
+    (grid, count)
+end
+(grid, count) = largeeig_experiment(n,t,dx)
 
 ## Theory
 (t, f) = tracywidom(5., -8.)
@@ -29,9 +33,13 @@ count=hist(v,grid)/(t*dx)
 ## Plot
 using Winston
 p = FramedPlot()
-h = Histogram(count, dx)
-h.x0 = grid[1]
+h = Histogram(count, step(grid))
+h.x0 = first(grid)
 add(p, h)
-add(p, Curve(t+5, f, "linewidth", 2, "color", "blue")) 
-file(p, "largeeig.png")
+add(p, Curve(t, f, "linewidth", 2, "color", "blue"))
+if isinteractive()
+    Winston.display(p)
+else
+    file(p, "largeeig.png")
+end
 
