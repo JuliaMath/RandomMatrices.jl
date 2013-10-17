@@ -2,6 +2,7 @@
 #Algorithm 1.3 of Random Eigenvalues by Alan Edelman
 
 #Theory:      Compute and plot the Tracy-Widom distribution
+#See also:    RandomMatrices.TracyWidom(t) for tn=-8
 
 ##Parameters
 t0=5.         # right endpoint
@@ -28,5 +29,9 @@ end
 using Winston
 p = FramedPlot()
 add(p, Curve(t, f2, "linewidth", 2))
-file(p, "tracywidom.png")
+if isinteractive()
+    Winston.display(p)
+else
+    file(p, "tracywidom.png")
+end
 

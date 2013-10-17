@@ -1,0 +1,55 @@
+The codes in this folder are translations of MATLAB code by Alan Edelman in his book "Random Eigenvalues" to Julia v0.2. Cross-referencing between these codes and the book can be done by folder number / file name and the comments at the top of each file that identify its counterpart in the book. The translation was done by Jeff Bezanson, Jiahao Chen, and Jameson Nash. d
+
+It is intended that these codes can be run in batch mode to generate the sample figures as output files, but that the codes are most useful when used interactively in the exploration of random matrix theory. For this reason, when run from the Julia REPL, the plots will be output to the screen.
+
+Additional codes should use the following template (modified from book/4/mpexperiment.jl). While some experiments will need to be single-threaded, many codes in Random Matrix Theory are Monte Carlo simulations which are trivial to parallelize using the pmap function. To make use of the parallelism this provides, either start Julia with the `-p N` flag or run `addprocs(N-1)` at the REPL (where N>=3 and equals CPU_CORES+1 optimally). When doing Julia-level parallelism, it is typically best to disable OpenBLAS parallelism by calling `Base.openblas_set_num_threads(1)`. Run code at the REPL using `include("<filename.jl>")` so that it is run only on the local processor (`require` is run on all processors).
+
+```julia
+#<filename>.jl
+#Algorithm <X.X> of Random Eigenvalues by Alan Edelman
+
+#Experiment:    Explain what theory or principle is being demonstrated
+#Plot:          Indicate what to expect the plot to contain
+#Theory:        Mention what mathematical concept is being applied
+
+## Parameters   # Include the most interesting configurable values at the top, with brief descriptions
+t = 10000       # trials
+n = 100         # matrix column size
+dx = 0.1        # binsize
+
+function an_experiment(t,n,dx) # wrap the experimental logic in a function to enable faster JIT
+    ## Experiment
+
+    #Single threaded experiment
+    # v = Float64[]
+    # for i = 1:t
+    #     append!(v, <new values>)
+    # end
+    
+    #Parallel experiment
+    v = pmap((i)->(<new value>), 1:t)
+    # v = vcat(pmap((i)->(<vector of new values>), 1:t)...)
+
+    ## Theory
+    x = -2:dx:2
+    y = x .^ 2
+    return (hist(v, x), (x, y))
+end
+((grid, count), (x,y)) = an_experiment(t,n,dx) #run the experiment, making the global variables local for speed
+
+## Plot
+using Winston
+p = FramedPlot()
+
+h = Histogram(count/(sum(count)*step(grid)), step(grid))    # add the histogram of data
+h.x0 = first(grid)
+add(p, h)
+
+add(p, Curve(x, y, "linewidth", 2, "color", "blue"))        # overlay the theory
+
+if isinteractive()
+    Winston.display(p)
+else
+    file(p, "<filename>.png")
+end
+```

@@ -279,7 +279,7 @@ function WeingartenUnitary(N::Integer, P::Ptr{gsl_permutation})
     WeingartenUnitary(N, C)
 end
 #Computes the Weingarten function for partitions
-function WeingartenUnitary(N::Integer, P::partition)
+function WeingartenUnitary(N::Integer, P::Partition)
     println("Computing Weingarten function of ", P)
     n = sum(P)
     m = length(P)
