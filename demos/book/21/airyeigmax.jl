@@ -1,7 +1,7 @@
 #airyeigmax.jl
 #Algorithm <21.1> of Random Eigenvalues by Alan Edelman
 
-#Experiment:    Largets eigenvalue of a Stochastic Airy Operator
+#Experiment:    Largest eigenvalue of a Stochastic Airy Operator
 #Plot:          Histogram of the largest eigenvalues
 #Theory:        The Tracy-Widom Law
 
@@ -20,6 +20,7 @@ function airyeigmax_experiment(t,n,beta,h) # wrap the experimental logic in a fu
     #Parallel experiment
     b = (1 / h^2) * ones(N-1)
     v = pmap(1:t) do i
+        ### The kernel is equivalent to evolve(AiryProcess(beta), h, 10)
         ## discretize stochastic airy operator
         # discretize airy operator
         a = -(2 / h ^ 2) * ones(N);  # differential operator: d^2 / dx^2
