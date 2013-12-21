@@ -124,7 +124,7 @@ function bidrand(d::GaussianLaguerre, m::Integer)
   if d.a <= d.beta*(m-1)/2.0
     error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", d.beta*(m-1)/2.0, d.a))
   end
-  Bidiagonal([chi(2*a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
+  Bidiagonal([chi(2*d.a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
 end
 
 #Generates a NxN tridiagonal Wishart matrix
