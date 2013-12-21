@@ -62,7 +62,7 @@ end
 tridrand(d::GaussianHermite, dims::Dim2) = dims[1]==dims[2] ? tridrand(d, dims[1]) : error("Can only generate square matrices")
 
 #Return n eigenvalues distributed according to the Hermite ensemble
-eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, b))
+eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, n))
 
 #Calculate Vandermonde determinant term
 function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
@@ -124,7 +124,7 @@ function bidrand(d::GaussianLaguerre, m::Integer)
   if d.a <= d.beta*(m-1)/2.0
     error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", d.beta*(m-1)/2.0, d.a))
   end
-  Bidiagonal([chi(2*a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
+  Bidiagonal([chi(2*d.a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
 end
 
 #Generates a NxN tridiagonal Wishart matrix
@@ -257,7 +257,9 @@ function eigvalrand(d::GaussianJacobi, n::Integer)
   c, s, cp, sp = SampleCSValues(n, d.a, d.b, d.beta)
   dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
   ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
-  M = Bidiagonal(dv, ev, false)
+  
+  ##TODO: understand why dv and ev are returned as Array{Any,1}
+  M = Bidiagonal(convert(Array{Float64,1},dv), convert(Array{Float64,1},ev), false)
   return svdvals(M)
 end
 
