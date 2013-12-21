@@ -62,7 +62,7 @@ end
 tridrand(d::GaussianHermite, dims::Dim2) = dims[1]==dims[2] ? tridrand(d, dims[1]) : error("Can only generate square matrices")
 
 #Return n eigenvalues distributed according to the Hermite ensemble
-eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, b))
+eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, n))
 
 #Calculate Vandermonde determinant term
 function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
@@ -257,7 +257,9 @@ function eigvalrand(d::GaussianJacobi, n::Integer)
   c, s, cp, sp = SampleCSValues(n, d.a, d.b, d.beta)
   dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
   ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
-  M = Bidiagonal(dv, ev, false)
+  
+  ##TODO: understand why dv and ev are returned as Array{Any,1}
+  M = Bidiagonal(convert(Array{Float64,1},dv), convert(Array{Float64,1},ev), false)
   return svdvals(M)
 end
 
