@@ -30,7 +30,6 @@ function hist_eig{GridPoint <: Number}(M::AbstractMatrix, bins::Vector{GridPoint
 end
 
 
-
 #Uses the method of Sturm sequences to compute the histogram of eigenvalues of
 #a symmetric tridiagonal mmatrix
 #
