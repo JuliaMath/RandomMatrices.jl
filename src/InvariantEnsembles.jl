@@ -55,6 +55,12 @@ end
 InvariantEnsemble(basis,d::Vector)=InvariantEnsemble(basis,Interval(d))
 
 
+## n, where the invariant ensemble is n x n
+Base.size(ie::InvariantEnsemble)=size(ie.basis,2),size(ie.basis,2)
+Base.size(ie::InvariantEnsemble,n)=size(ie.basis,2)
+
+
+
 #Takes in list of OPs, constructs phis
 # can be unstable for large n
 function InvariantEnsemble(p::Array{IFun},V::Function,d,n::Integer)
@@ -77,6 +83,11 @@ function InvariantEnsemble(p::Array{IFun},V::Function,d,n::Integer)
 end
 
 
+
+
+
+
+##Construct invariant ensemble from weight, first moment and recurrence relationship
 function adaptiveie(w,μ0,α,β,d)
   for logn = 4:20
     m=2^logn + 1
@@ -177,6 +188,20 @@ function RandomMatrices.eigvalrand(p::InvariantEnsemble,m::Integer)
     hcat([samplespectra(p.basis,p.domain,plan,pts) for i=1:m]...)'
 end
 
+RandomMatrices.eigvalrand(p::InvariantEnsemble)=[eigvalrand(p,1)[1,:]...]
+
+function Base.rand(p::InvariantEnsemble)
+    Q=rand(Haar(2),size(p,1))
+    Q*diagm(eigvalrand(p))*Q'
+end
+
+function Base.rand(p::InvariantEnsemble,m::Integer)
+    ei = eigvalrand(p,m)
+    [(    Q=rand(Haar(2),size(p,1));
+    Q*diagm([ei[k,:]...])*Q') for k=1:size(ei,1)]
+end
+
+
 samplespectra(q::Array{Float64,2},d)=samplespectra(q,d,plan_chebyshevtransform(q[:,1]),chebyshevpoints(size(q,1)))
 
 function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
@@ -271,25 +296,25 @@ function spectradatabase(str,n::Integer,m::Integer)
     
     ie = InvariantEnsemble(str,n)
   
-    A=hcat([samplespectra(ie) for i=1:m+1]...)';
-    writedlm(file,A,',');    
+    A=eigvalrand(ie,m+1)
+    writedlm(file,A,',')    
   else
-    A = readdlm(file,',');
+    A = readdlm(file,',')
     
     if ( m > size(A)[1])
       warn(string(m) * " is greater than current samples " * string(size(A)[1]) * ".  Generating more samples");
       
       ie = InvariantEnsemble(str,n)      
       
-      An=hcat([samplespectra(ie) for i=1:(m-size(A)[1]+1)]...)';
+      An=eigvalrand(ie,m-size(A)[1]+1)
       
-      A = vcat(A,An);
+      A = vcat(A,An)
       
-      writedlm(file,A,',');
+      writedlm(file,A,',')
     end
   end
   
-    return A[1:m,:];  
+    return A[1:m,:]
 end
 
 
