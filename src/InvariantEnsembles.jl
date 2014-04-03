@@ -1,12 +1,35 @@
+# Computes samples of unitary invariant ensembles matrices of size nxn
+#
+# InvariantEnsemble(str,n) represents an n x n unitary invariant ensemble 
+# with distribution
+#
+#   exp(- Tr Q(M)) dM
+#
+# str specifies an ensemble with precomputed recurrence coefficients.
+#  The currently include ensembles are
+#
+#       Quartic:            Q(M) = n M^4
+#       Eight:              Q(M) = n M^8
+#       HODecay:            Q(M) = n (M^4/20 - 4/15M^3 +M^2/5 + 8/5M)
+#       CoshUnscaled:       Q(M) = cosh(M)
+#       QuarticUnscaled:    Q(M) = M^4
+#       EightUnscaled:      Q(M) = M^8
+# 
+# References:
+#    Olver, Rao & Trogdon 2014 arXiv:1404.007
+
+
+
 module InvariantEnsembles
     using ApproxFun, RandomMatrices
 
 export InvariantEnsemble
 
 
-## Construct OPs
 
 
+
+## Construct orthogonal polynomials as IFuns from first moment and recurrence relationship
 function orthonormalpolynomials(μ0,α::Vector,β::Vector,d)
     n=length(α)+1
     
@@ -31,6 +54,7 @@ function scaledhermitepolynomials(n)
 end
 
 
+## Evaluate orthogonal polynomials at points x from first moment and recurrence relationship
 function orthonormalpolynomialsvalues(μ0,α::Vector,β::Vector,x)
     n=length(α)+1
     m=length(x)
@@ -48,8 +72,8 @@ end
 ## Ensembles
 
 type InvariantEnsemble{D<:Interval}
-    basis::Array{Float64,2}
-    domain::D
+    basis::Array{Float64,2}         # the m x n array of the first n weighted OPs evaluated at m Chebyshev points
+    domain::D                       # the sub domain  of the real line
 end
 
 InvariantEnsemble(basis,d::Vector)=InvariantEnsemble(basis,Interval(d))
@@ -87,7 +111,7 @@ end
 
 
 
-##Construct invariant ensemble from weight, first moment and recurrence relationship
+##Adaptively construct invariant ensemble from weight, first moment and recurrence relationship
 function adaptiveie(w,μ0,α,β,d)
   for logn = 4:20
     m=2^logn + 1
@@ -125,6 +149,8 @@ function InvariantEnsemble(str::String,V::Function,d,n::Integer)
     adaptiveie(x->exp(-n.*V(x)),μ0,a,sqrt(b),d)
 end
 
+
+# For constructing InvariantEnsembles that do not scale with n
 function InvariantEnsembleUnscaled(str::String,V::Function,d,n::Integer)
     file = Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled/" * str * "/")
     μ0=readdlm(file * "norm.csv")[1]
@@ -141,7 +167,7 @@ end
 #Decides whether to use built in recurrence or read it in
 # Also contains ensemble data
 function InvariantEnsemble(str::String,n::Integer)
-    if(str == "Gaussian")
+    if(str == "GUE")
         InvariantEnsemble(str,x->x.^2,[-3.,3.],n)            
     elseif(str == "Quartic")
         InvariantEnsemble(str,x->x.^4,[-3.,3.],n)
@@ -162,8 +188,7 @@ function InvariantEnsemble(str::String,n::Integer)
 end
 
 
-## Sampling
-
+##  Construct the invariant ensemble kernel K_n(x,x)
 iekernel(q::Array{Float64,2},d)=iekernel(q,d,plan_chebyshevtransform(q[:,1]))
 function iekernel(q::Array{Float64,2},d,plan::Function)
     n=size(q)[1]
@@ -178,8 +203,11 @@ function iekernel(q::Array{Float64,2},d,plan::Function)
   IFun(chebyshevtransform(ret,plan),d)
 end
 
+
 samplespectra(str::String,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
 
+
+# Sample eigenvalues of invariant ensemble, m times
 function RandomMatrices.eigvalrand(p::InvariantEnsemble,m::Integer)
     q = p.basis
     plan = plan_chebyshevtransform(q[:,1])
@@ -190,18 +218,23 @@ end
 
 RandomMatrices.eigvalrand(p::InvariantEnsemble)=[eigvalrand(p,1)[1,:]...]
 
+
+# Sample invariant ensemble
 function Base.rand(p::InvariantEnsemble)
     Q=rand(Haar(2),size(p,1))
     Q*diagm(eigvalrand(p))*Q'
 end
 
+# Sample invariant ensemble, m times
 function Base.rand(p::InvariantEnsemble,m::Integer)
     ei = eigvalrand(p,m)
-    [(    Q=rand(Haar(2),size(p,1));
+    Array{Complex{Float64},2}[(    Q=rand(Haar(2),size(p,1));
     Q*diagm([ei[k,:]...])*Q') for k=1:size(ei,1)]
 end
 
 
+
+## samplespectra is back end for eigvalrand
 samplespectra(q::Array{Float64,2},d)=samplespectra(q,d,plan_chebyshevtransform(q[:,1]),chebyshevpoints(size(q,1)))
 
 function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
@@ -252,7 +285,7 @@ samplespectra(p::InvariantEnsemble)=samplespectra(p.basis,p.domain)
 
 
 
-## Spectra Database
+## Spectra database supports building up a database of precomputed samples
 
 
 function spectradatabase(str,n::Integer,m::Colon)
