@@ -1,12 +1,7 @@
 module InvariantEnsembles
-    using ApproxFun
-    
-    
-export spectradatabase,samplespectra
+    using ApproxFun, RandomMatrices
 
-
-
-
+export InvariantEnsemble
 
 
 ## Construct OPs
@@ -174,7 +169,7 @@ end
 
 samplespectra(str::String,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
 
-function samplespectra(p::InvariantEnsemble,m::Integer)
+function RandomMatrices.eigvalrand(p::InvariantEnsemble,m::Integer)
     q = p.basis
     plan = plan_chebyshevtransform(q[:,1])
     pts=chebyshevpoints(size(q,1))
