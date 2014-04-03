@@ -31,6 +31,10 @@ include("GaussianEnsembles.jl")
 include("densities/Semicircle.jl")
 include("densities/TracyWidom.jl")
 
+
+# Ginibre
+include("Ginibre.jl")
+
 #Generating matrices of Haar measure
 include("Haar.jl")
 include("HaarMeasure.jl")

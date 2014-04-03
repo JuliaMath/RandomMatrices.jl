@@ -11,6 +11,7 @@ immutable Ginibre <: ContinuousMatrixDistribution
 end
 
 function rand(W::Ginibre)
+    beta, n = W.beta, W.N
     if beta==1
         randn(n,n)
     elseif beta==2

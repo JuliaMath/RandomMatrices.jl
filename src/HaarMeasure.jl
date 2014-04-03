@@ -20,8 +20,8 @@ import Base.rand
 #    Edelman and Rao, 2005
 #    Mezzadri, 2006, math-ph/0609050
 #TODO implement O(n^2) method
-function rand(W::Haar, doCorrection::Integer)
-    n, beta = W.N, W.beta
+function rand(W::Haar, n::Integer, doCorrection::Integer)
+    beta = W.beta
     M=rand(Ginibre(n, beta))
     q,r=qr(M)
     if doCorrection==0
