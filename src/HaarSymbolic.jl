@@ -1,4 +1,3 @@
-using GSL
 using Catalan
 
 export permutations_in_Sn, compose, cycle_structure, data, part, #Functions working with partitions and permutations
@@ -31,6 +30,7 @@ function permutations_in_Sn(n::Integer)
     end
 end
 
+if _HAVE_GSL
 function compose(P::Ptr{gsl_permutation}, Q::Ptr{gsl_permutation})
     #Compose the permutations
     n=convert(Int64, permutation_size(P))
@@ -63,6 +63,8 @@ end
 #Returns a vector of indices (starting from 1 in the Julia convention)
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
+
+end #_HAVE_GSL
 
 immutable UniformHaar <: ContinuousMatrixDistribution
     beta::Float64
@@ -273,6 +275,8 @@ end
 
 expectedtrace(N::Integer, MyQ::Symbol, X::Expr)=expectation(N, MyQ, X, true)
 
+if _HAVE_GSL
+
 #Computes the Weingarten function for permutations
 function WeingartenUnitary(N::Integer, P::Ptr{gsl_permutation})
     C = cycle_structure(P)
@@ -298,3 +302,4 @@ function WeingartenUnitary(N::Integer, P::Partition)
     float64(thesum)
 end
 
+end #_HAVE_GSL
