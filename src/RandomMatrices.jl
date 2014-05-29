@@ -9,7 +9,7 @@ using Catalan
 #If the GNU Scientific Library is present, turn on additional functionality.
 _HAVE_GSL = try
   using GSL
-  _HAVE_GSL
+  true
 end
 if _HAVE_GSL
   using GSL
