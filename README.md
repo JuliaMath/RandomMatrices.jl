@@ -39,6 +39,7 @@ The hierarchy of dense matrices provided are
   - Circular symplectic ensemble (GSE, `beta=4`)
 - Laguerre matrices = white Wishart matrices
 - Jacobi matrices = MANOVA matrices
+- Unitary invariant ensembles
 
 Unless otherwise specified, `beta=1,2,4` are supported. For the symplectic matrices `beta=4`,
 the 2x2 outer block-diagonal complex representation `USp(2N)` is used.
@@ -82,6 +83,11 @@ Hermite, Laguerre(m) and Jacobi(m1, m2) ensembles.
    is applied to the raw QR decomposition. By default, `correction=1` (Edelman's correction) is
    used. Other valid values are `0` (no correction) and `2` (Mezzadri's correction).
  - `NeedsPiecewiseCorrection()` implements a simple test to see if a correction is necessary.
+ 
+- `InvariantEnsemble(str,n)`
+   Generates a unitary invariant ensemble, where str determines the
+   potential of the ensemble, see below.
+   Only available if ApproxFun package is installed.
 
 The parameters `m`, `m1`, `m2` refer to the number to independent "data" degrees of freedom.
 For the dense samples these must be `Integer`s but can be `Real`s for the rest.
@@ -146,6 +152,23 @@ In the following, `dt` is the time interval being discretized over and `t_end` i
 - `StochasticAiryProcess(dt, t_end, beta)` generates the largest eigenvalue corresponding to the
    stochastic Airy process with real positive `beta`. This is known to be distributed in the `t_end -> Inf`
    limit to the `beta`-Tracy-Widom law.
+   
+# Invariant ensembles
+
+`InvariantEnsemble(str,n)` supports n x n unitary invariant ensemble 
+ with distribution
+
+`exp(- Tr Q(M)) dM`
+
+ `str` specifies an ensemble with precomputed recurrence coefficients.
+  The currently include ensembles are
+
+ - Quartic:            		Q(M) = n M^4
+ - Eight:              		Q(M) = n M^8
+ - HODecay:            		Q(M) = n (M^4/20 - 4/15M^3 +M^2/5 + 8/5M)
+ - CoshUnscaled:       		Q(M) = cosh(M)
+ -  QuarticUnscaled:    		Q(M) = M^4
+ -  EightUnscaled:      		Q(M) = M^8
 
 # References
 - James Albrecht, Cy Chan, and Alan Edelman,
