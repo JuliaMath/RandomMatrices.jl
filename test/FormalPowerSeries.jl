@@ -4,7 +4,7 @@
 #
 # Jiahao Chen <jiahao@mit.edu> 2013
 
-using Test
+using Base.Test
 using RandomMatrices
 
 MaxSeriesSize=10

@@ -6,6 +6,8 @@ module RandomMatrices
 importall Distributions
 using Catalan
 
+import Base.rand
+
 #If the GNU Scientific Library is present, turn on additional functionality.
 _HAVE_GSL = try
   using GSL

@@ -1,5 +1,5 @@
-export rand, NeedPiecewiseCorrection
-import Base.rand
+export NeedPiecewiseCorrection
+
 
 # Computes samplex of real or complex Haar matrices of size nxn
 #
