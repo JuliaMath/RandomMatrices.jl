@@ -8,9 +8,8 @@ import Base.rand
 _HAVE_GSL = try
   using GSL
   true
-end
-if _HAVE_GSL
-  using GSL
+catch
+   false
 end
 
 export bidrand,    #Generate random bidiagonal matrix
