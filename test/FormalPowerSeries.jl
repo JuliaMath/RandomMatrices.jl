@@ -1,12 +1,4 @@
-#!/usr/bin/env julia
-#
 # Excursions in formal power series (fps)
-#
-# Jiahao Chen <jiahao@mit.edu> 2013
-
-using Base.Test
-using RandomMatrices
-
 MaxSeriesSize=10
 MaxRange = 50
 MatrixSize=15

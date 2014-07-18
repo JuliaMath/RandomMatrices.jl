@@ -1,7 +1,3 @@
-using RandomMatrices
-using Base.Test
-using Distributions
-
 N=5
 A=randn(N,N)
 B=randn(N,N)
