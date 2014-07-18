@@ -16,6 +16,11 @@ Copyright (c) 2013 [Jiahao Chen](https://github.com/jiahao) <jiahao@mit.edu>
 
 Distributed under the [MIT License](http://opensource.org/licenses/MIT).
 
+[![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.2.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.2)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.3.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.3)
+[![Coverage Status](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)
+
 # Gaussian matrix ensembles
 
 Much of classical random matrix theory has focused on matrices with matrix elements comprised of
