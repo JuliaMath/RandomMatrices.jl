@@ -1,7 +1,3 @@
-require("Distributions")
-require("Catalan")
-require("GSL")
-
 module RandomMatrices
 importall Distributions
 using Catalan
