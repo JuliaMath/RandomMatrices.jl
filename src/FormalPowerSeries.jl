@@ -7,8 +7,7 @@
 #     Power Series---Integration---Conformal Mapping---Location of Zeros,
 #     Wiley-Interscience: New York, 1974
 
-import Base.eye, Base.inv, Base.length, 
-       Base.==, Base.+, Base.-, Base.*, Base.(.*), Base.^
+import Base: zero, one, eye, inv, length, ==, +, -, *, (.*), ^
 export FormalPowerSeries, fps, tovector, trim, isunit, isnonunit,
        MatrixForm, reciprocal, derivative, isconstant, compose,
        isalmostunit, FormalLaurentSeries
@@ -39,10 +38,8 @@ fps = FormalPowerSeries{Float64}
 function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: Vector{Index})
   nn = length(n)
   c = zeros(nn)
-  for (k,v) in P.c
-    for i=1:nn
-      n[i]==k ? (c[i]=v) : nothing
-    end
+  for (k,v) in P.c, i=1:nn
+      n[i]==k && (c[i]=v)
   end
   c
 end
@@ -101,10 +98,10 @@ end
 function -{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
+    c[k] = get(c,k,zero(T)) + v 
   end
   for (k,v) in Q.c
-    haskey(c,k) ? (c[k]-=v) : (c[k]=-v) 
+    c[k] = get(c,k,zero(T)) - v 
   end
   FormalPowerSeries{T}(c)
 end
@@ -132,10 +129,8 @@ end
 *{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) = CauchyProduct(P, Q)
 function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
-  for (k1, v1) in P.c
-    for (k2, v2) in Q.c
-      haskey(c, k1+k2) ? (c[k1+k2]+=v1*v2) : (c[k1+k2]=v1*v2)
-    end
+  for (k1, v1) in P.c, (k2, v2) in Q.c
+      c[k1+k2]=get(c, k1+k2, zero(T))+v1*v2 
   end
   FormalPowerSeries{T}(c)
 end
@@ -170,7 +165,7 @@ isnonunit{T}(P::FormalPowerSeries{T}) = (!haskey(P.c, 0) || P.c[0]==0) && !isuni
 #upper triangular Toeplitz matrix
 #This constructs the dense matrix - Toeplitz matrices don't exist in Julia yet
 function MatrixForm{T}(P::FormalPowerSeries{T}, m :: Integer)
-  m<0 ? error(sprintf("Invalid matrix dimension %d requested", m)) : true
+  m<0 && error("Invalid matrix dimension $m requested")
   M=zeros(T, m, m)
   for (k,v) in P.c
     if k < m
@@ -215,7 +210,7 @@ end
 function derivative{T}(P::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    if k != 0 && v != 0 
+    if k != 0 && v != 0
       c[k-1] = k*v
     end
   end
@@ -260,14 +255,14 @@ end
 
 #[H, p.45]
 function isalmostunit{T}(P::FormalPowerSeries{T})
-  (haskey(P.c, 0) && P.c[0]!=0) ? (return false) : true
+  (haskey(P.c, 0) && P.c[0]!=0) ? (return false) : 
   (haskey(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
 end
 
 
 # Reversion of a series (inverse with respect to composition)
 # P^[-1]
-# [H. Sec.1.7, p.47, but more succintly stated on p.55]
+# [H. Sec.1.7, p.47, but more succinctly stated on p.55]
 # Constructs the upper left nxn subblock of the matrix representation
 # and inverts it
 function reversion{T}(P::FormalPowerSeries{T}, n :: Integer)
@@ -280,7 +275,7 @@ function reversion{T}(P::FormalPowerSeries{T}, n :: Integer)
       Q = P
       ai = tovector(Q, n) #Extract coefficients P[1]...P[n]
       A[i,:] = ai
-      i<n ? Q *= P : nothing
+      i<n && (Q *= P)
   end
 
   #TODO I just need the first row of the inverse
