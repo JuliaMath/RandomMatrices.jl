@@ -33,6 +33,8 @@ end
 #Convenient abbreviation for floats
 fps = FormalPowerSeries{Float64}
 
+zero{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[])
+one{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[1])
 
 #Return truncated vector with c[i] = P[n[i]]
 function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: Vector{Index})
