@@ -64,8 +64,6 @@ end
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
-end #_HAVE_GSL
-
 immutable UniformHaar <: ContinuousMatrixDistribution
     beta::Float64
     N::Int
@@ -274,8 +272,6 @@ function expectation(N::Integer, MyQ::Symbol, X::Expr, dotrace::Bool)
 end
 
 expectedtrace(N::Integer, MyQ::Symbol, X::Expr)=expectation(N, MyQ, X, true)
-
-if _HAVE_GSL
 
 #Computes the Weingarten function for permutations
 function WeingartenUnitary(N::Integer, P::Ptr{gsl_permutation})
