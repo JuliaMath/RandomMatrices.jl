@@ -68,7 +68,7 @@ function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   for (k,v) in P.c
     if v==0 #ignore explicit zeros
       continue
-    elseif !has(Q.c, k)
+    elseif !haskey(Q.c, k)
       return false
     elseif Q.c[k] != v
       return false
@@ -77,7 +77,7 @@ function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   for (k,v) in Q.c
     if v==0 #ignore explicit zeros
       continue
-    elseif !has(P.c, k)
+    elseif !haskey(P.c, k)
       return false
     elseif P.c[k] != v
       return false
@@ -90,10 +90,10 @@ end
 function +{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    has(c,k) ? (c[k]+=v) : (c[k]=v) 
+    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
   end
   for (k,v) in Q.c
-    has(c,k) ? (c[k]+=v) : (c[k]=v) 
+    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
   end
   FormalPowerSeries{T}(c)
 end
@@ -101,10 +101,10 @@ end
 function -{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    has(c,k) ? (c[k]+=v) : (c[k]=v) 
+    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
   end
   for (k,v) in Q.c
-    has(c,k) ? (c[k]-=v) : (c[k]=-v) 
+    haskey(c,k) ? (c[k]-=v) : (c[k]=-v) 
   end
   FormalPowerSeries{T}(c)
 end
@@ -134,7 +134,7 @@ function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k1, v1) in P.c
     for (k2, v2) in Q.c
-      has(c, k1+k2) ? (c[k1+k2]+=v1*v2) : (c[k1+k2]=v1*v2)
+      haskey(c, k1+k2) ? (c[k1+k2]+=v1*v2) : (c[k1+k2]=v1*v2)
     end
   end
   FormalPowerSeries{T}(c)
@@ -145,7 +145,7 @@ end
 function HadamardProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    if v!=0 && has(Q.c,k) && Q.c[k]==0
+    if v!=0 && haskey(Q.c,k) && Q.c[k]==0
       c[k] = v * Q.c[k]
     end
   end
@@ -162,7 +162,7 @@ end
 isunit{T <: Number}(P::FormalPowerSeries{T}) = P==eye(P)
 
 # [H, p.12]
-isnonunit{T}(P::FormalPowerSeries{T}) = (!has(P.c, 0) || P.c[0]==0) && !isunit(P)
+isnonunit{T}(P::FormalPowerSeries{T}) = (!haskey(P.c, 0) || P.c[0]==0) && !isunit(P)
 
 #Constructs the top left m x m block of the (infinite) semicirculant matrix
 #associated with the fps [H, Sec.1.3, p.14]
@@ -260,8 +260,8 @@ end
 
 #[H, p.45]
 function isalmostunit{T}(P::FormalPowerSeries{T})
-  (has(P.c, 0) && P.c[0]!=0) ? (return false) : true
-  (has(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
+  (haskey(P.c, 0) && P.c[0]!=0) ? (return false) : true
+  (haskey(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
 end
 
 

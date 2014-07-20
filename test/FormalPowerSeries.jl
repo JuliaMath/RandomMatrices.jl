@@ -17,7 +17,7 @@ nzeros = int(rand()*MaxSeriesSize)
 XX = deepcopy(X)
 for i=1:nzeros  
     idx = int(rand()*MaxRange)
-    if !has(XX.c, idx)
+    if !haskey(XX.c, idx)
         XX.c[idx] = convert(TT, 0)
     end
 end
