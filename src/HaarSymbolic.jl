@@ -22,6 +22,7 @@ function part(n::Integer)
     end
 end
 
+if _HAVE_GSL
 function permutations_in_Sn(n::Integer)
     P = permutation_calloc(n)
     while true 
@@ -30,7 +31,6 @@ function permutations_in_Sn(n::Integer)
     end
 end
 
-if _HAVE_GSL
 function compose(P::Ptr{gsl_permutation}, Q::Ptr{gsl_permutation})
     #Compose the permutations
     n=convert(Int64, permutation_size(P))
