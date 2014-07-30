@@ -50,7 +50,7 @@ include("StatisticalTests.jl")
 include("StochasticProcess.jl")
 
 #Invariant ensembles
-if filesize(Pkg.dir("ApproxFun")) != 0
+if filemode(Pkg.dir("ApproxFun")) != 0
     include("InvariantEnsembles.jl")
 end
 
