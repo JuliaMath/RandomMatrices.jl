@@ -29,11 +29,11 @@ export InvariantEnsemble
 
 
 
-## Construct orthogonal polynomials as IFuns from first moment and recurrence relationship
+## Construct orthogonal polynomials as Funs from first moment and recurrence relationship
 function orthonormalpolynomials(μ0,α::Vector,β::Vector,d)
     n=length(α)+1
     
-    p=Array(IFun{Float64,Interval{Float64}},n)
+    p=Array(Fun{ChebyshevSpace,Float64},n)
     p[1] = Fun([μ0],d)
     p[2] = multiplybyx(p[1])./β[1] - p[1].*α[1]./β[1]
     for k = 3:n
@@ -87,7 +87,7 @@ Base.size(ie::InvariantEnsemble,n)=size(ie.basis,2)
 
 #Takes in list of OPs, constructs phis
 # can be unstable for large n
-function InvariantEnsemble(p::Array{IFun},V::Function,d,n::Integer)
+function InvariantEnsemble{F<:Fun}(p::Array{F},V::Function,d,n::Integer)
     error("Reimplement with matrix")
 
 #     wsq=IFun(x->exp(-n/2.*V(x)),d)
@@ -200,7 +200,7 @@ function iekernel(q::Array{Float64,2},d,plan::Function)
         end
     end
   
-  IFun(chebyshevtransform(ret,plan),d)
+  Fun(chebyshevtransform(ret,plan),d)
 end
 
 
@@ -257,7 +257,7 @@ function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
 end
 
 
-function iekernel(p::Array{IFun{Float64,Interval{Float64}}})
+function iekernel{F<:Fun}(p::Array{F})
     ret = 0.*p[1]
     for i = 1:length(p)
         ret += fasttimes(p[i],p[i])
@@ -266,7 +266,7 @@ function iekernel(p::Array{IFun{Float64,Interval{Float64}}})
     ret
 end
 
-function samplespectra(p::Array{IFun{Float64,Interval{Float64}}})
+function samplespectra{F<:Fun}(p::Array{F})
     n = length(p)
     r=sample(iekernel(p)/n)
     if n==1
