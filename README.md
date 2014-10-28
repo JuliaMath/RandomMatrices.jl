@@ -11,11 +11,6 @@ samples and their associated distributions are provided.
 The names of the various ensembles can vary widely across disciplines. Where possible,
 synonyms are listed.
 
-## License
-Copyright (c) 2013 [Jiahao Chen](https://github.com/jiahao) <jiahao@mit.edu>
-
-Distributed under the [MIT License](http://opensource.org/licenses/MIT).
-
 [![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
 [![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.2.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.2)
 [![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.3.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.3)
