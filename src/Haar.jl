@@ -1,5 +1,3 @@
-using Catalan
-
 export permutations_in_Sn, compose, cycle_structure, data, part, #Functions working with partitions and permutations
     partition, Haar, expectation, WeingartenUnitary
 

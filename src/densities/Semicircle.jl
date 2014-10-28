@@ -1,7 +1,6 @@
 #Wigner semicircle distribution
 
 importall Distributions
-using Catalan
 export Semicircle
 
 immutable Semicircle <: ContinuousUnivariateDistribution
