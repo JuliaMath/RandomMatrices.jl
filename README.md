@@ -16,6 +16,10 @@ synonyms are listed.
 [![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_nightly.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=nightly)
 [![Coverage Status](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)
 
+Additional functionality is provided when these optional packages are installed:
+- Symbolic manipulation of Haar matrices with [GSL.jl](https://github.com/jiahao/GSL.jl)
+- Invariant ensembles with [ApproxFun.jl](https://github.com/dlfivefifty/ApproxFun.jl)
+
 # Gaussian matrix ensembles
 
 Much of classical random matrix theory has focused on matrices with matrix elements comprised of
