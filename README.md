@@ -12,8 +12,8 @@ The names of the various ensembles can vary widely across disciplines. Where pos
 synonyms are listed.
 
 [![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.2.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.2)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.3.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.3)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_release.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=release)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_nightly.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=nightly)
 [![Coverage Status](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)
 
 # Gaussian matrix ensembles
