@@ -142,7 +142,7 @@ function expectation(X::Expr)
     ##################################
     # Step 2. Enumerate permutations #
     ##################################
-    AllTerms = {}
+    AllTerms = Any[]
     for sigma in @task permutations_in_Sn(n)
         for tau in @task permutations_in_Sn(n)
             sigma_inv=permutation_inverse(sigma)
@@ -186,7 +186,7 @@ function expectation(X::Expr)
             println("START PARSING")
             println("The term is =", ReindexedSymbols[end])
             Symb, left_idx, right_idx = pop!(ReindexedSymbols)
-            Expression={{{Symb}, left_idx, right_idx}}
+            Expression=[Any[Symbol[Symb], left_idx, right_idx]]
             while length(ReindexedSymbols) > 0
                 pop_idx = expr_idx = do_transpose = is_left = nothing
                 for expr_iter in enumerate(Expression)
@@ -227,7 +227,7 @@ function expectation(X::Expr)
                 if pop_idx == nothing #Found nothing, start new expression blob
                 println("New word: The term is ", ReindexedSymbols[1])
                     Symb, left_idx, right_idx = delete!(ReindexedSymbols, 1)
-                    push!(Expression, {{Symb}, left_idx, right_idx})
+                    push!(Expression, [Symbol[Symb], left_idx, right_idx])
                 else #Found something
                     println("The term is =", ReindexedSymbols[pop_idx])
                     Symb, col_idx, row_idx = delete!(ReindexedSymbols, pop_idx)
@@ -244,7 +244,7 @@ function expectation(X::Expr)
             println("DONE PARSING TREE")
 
             # Evaluate closed cycles
-            NewExpression={}
+            NewExpression=Any[]
             for ExprChunk in Expression
                 ExprBlob, start_idx, end_idx = ExprChunk
                 print(ExprChunk, " => ")
