@@ -1,6 +1,6 @@
 module RandomMatrices
 importall Distributions
-using Catalan
+using Combinatorics
 
 import Base.rand
 
@@ -35,7 +35,6 @@ include("Ginibre.jl")
 #Generating matrices of Haar measure
 include("Haar.jl")
 include("HaarMeasure.jl")
-include("HaarSymbolic.jl")
 
 #Fast histogrammer for matrix eigenvalues - hist_eig
 include("FastHistogram.jl")

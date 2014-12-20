@@ -11,15 +11,14 @@ samples and their associated distributions are provided.
 The names of the various ensembles can vary widely across disciplines. Where possible,
 synonyms are listed.
 
-## License
-Copyright (c) 2013 [Jiahao Chen](https://github.com/jiahao) <jiahao@mit.edu>
-
-Distributed under the [MIT License](http://opensource.org/licenses/MIT).
-
 [![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.2.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.2)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.3.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=0.3)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_release.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=release)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_nightly.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=nightly)
 [![Coverage Status](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)
+
+Additional functionality is provided when these optional packages are installed:
+- Symbolic manipulation of Haar matrices with [GSL.jl](https://github.com/jiahao/GSL.jl)
+- Invariant ensembles with [ApproxFun.jl](https://github.com/dlfivefifty/ApproxFun.jl)
 
 # Gaussian matrix ensembles
 

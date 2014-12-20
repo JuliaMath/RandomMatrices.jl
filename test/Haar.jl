@@ -1,4 +1,4 @@
-if _HAVE_GSL 
+if isdefined(:_HAVE_GSL)
 N=5
 A=randn(N,N)
 B=randn(N,N)
