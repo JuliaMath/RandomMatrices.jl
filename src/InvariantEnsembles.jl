@@ -33,7 +33,7 @@ export InvariantEnsemble
 function orthonormalpolynomials(μ0,α::Vector,β::Vector,d)
     n=length(α)+1
     
-    p=Array(Fun{ChebyshevSpace,Float64},n)
+    p=Array(Fun{Chebyshev,Float64},n)
     p[1] = Fun([μ0],d)
     p[2] = multiplybyx(p[1])./β[1] - p[1].*α[1]./β[1]
     for k = 3:n
