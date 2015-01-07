@@ -30,7 +30,7 @@ function pdf(X::Semicircle, x::Real)
 end
 
 # predicate is x in the support of the distribution?
-insupport(X::Semicircle, x::Real)=abs(x)<=X.radius
+insupport(X::Semicircle, x::Real)=abs(x-X.mean)<=X.radius
 
 
 #Entropy methods
