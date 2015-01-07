@@ -20,13 +20,13 @@ Semicircle() = Semicircle(0.0, 2.0)
 # cumulative distribution function
 function cdf(X::Semicircle, x::Real)
     r, a = X.mean, X.radius
-    insupport(x) ? 0.5 + (x-a)/(pi*r^2) * sqrt(r^2 - (x-a)^2) + 1/pi * asin((x-a)/r) : (x>a ? 1.0 : 0.0)
+    insupport(X, x) ? 0.5 + (x-a)/(pi*r^2) * sqrt(r^2 - (x-a)^2) + 1/pi * asin((x-a)/r) : (x>a ? 1.0 : 0.0)
 end
 
 # probability density function
 function pdf(X::Semicircle, x::Real)
     r, a = X.mean, X.radius
-    insupport(x) ? 2/(pi*r^2) * sqrt(r^2 - (x-a)^2) : 0.0
+    insupport(X, x) ? 2/(pi*r^2) * sqrt(r^2 - (x-a)^2) : 0.0
 end
 
 # predicate is x in the support of the distribution?
