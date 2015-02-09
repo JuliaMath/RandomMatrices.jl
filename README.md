@@ -152,7 +152,7 @@ In the following, `dt` is the time interval being discretized over and `t_end` i
 
 - `BrownianProcess(dt, t_end)` generates a vector corresponding to a Brownian random walk starting
    from time `t=0` and position `x=0` 
-- `WhiteNoiceProcess(dt, t_end)` generates a vector corresponding to white noise.
+- `WhiteNoiseProcess(dt, t_end)` generates a vector corresponding to white noise.
 - `StochasticAiryProcess(dt, t_end, beta)` generates the largest eigenvalue corresponding to the
    stochastic Airy process with real positive `beta`. This is known to be distributed in the `t_end -> Inf`
    limit to the `beta`-Tracy-Widom law.
