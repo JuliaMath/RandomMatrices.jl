@@ -2,6 +2,10 @@ module RandomMatrices
 importall Distributions
 using Combinatorics
 
+if VERSION < v"0.4-"
+    using Docile
+end
+
 import Base.rand
 
 #If the GNU Scientific Library is present, turn on additional functionality.
@@ -31,6 +35,9 @@ include("densities/TracyWidom.jl")
 
 # Ginibre
 include("Ginibre.jl")
+
+# determinantal point processes
+include("dpp.jl")
 
 #Generating matrices of Haar measure
 include("Haar.jl")
