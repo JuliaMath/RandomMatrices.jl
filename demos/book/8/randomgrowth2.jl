@@ -1,13 +1,14 @@
 #randomgrowth2.jl
-using Winston
+using PyPlot
 using ODE
-include("../1/gradient.jl")
 
 function randomgrowth2()
     num_trials = 2000
     g = 1
     q = 0.7
-    Ns = 80 # [50, 100, 200]
+    Ns = 80
+    # Ns = [50, 100, 200]
+    clf()
     # [-1.771086807411  08131947928329]
     # Gap = c d^N
     for jj = 1:length(Ns)
@@ -23,11 +24,9 @@ function randomgrowth2()
         end
         C = (B - N*om(g,q)) / (sigma_growth(g,q)*N^(1/3))
         d = 0.2
-        x, n = hist(C - exp(-N*0.0025 - 3), -6:d:4)
-        p = FramedPlot()
-        h = Histogram(n/(d*num_trials), step(x))
-        h.x0 = first(x)
-        add(p, h)
+        subplot(1,length(Ns),jj)
+        plt.hist(C - exp(-N*0.0025 - 3), normed = true)
+        xlim(-6, 4)
 
         ## Theory
         t0 = 4
@@ -35,12 +34,15 @@ function randomgrowth2()
         dx = 0.005
         deq = (t, y) -> [y[2]; t*y[1]+2*y[1]^3; y[4]; y[1]^2]
         y0 = [airy(t0); airy(1,t0); 0; airy(t0)^2]      # boundary conditions
-        t, y = ode23(deq, t0:-dx:tn, y0)                # solve
-        F2 = exp(-y[:,3])                               # the distribution
+        t, y = ode23(deq, y0, t0:-dx:tn)                # solve
+        F2 = Float64[exp(-y[i][3]) for i = 1:length(y)]                               # the distribution
         f2 = gradient(F2, t)                            # the density
-       
-        add(p, Curve(t, f2, "color", "red", "linewidth", 3))
-        Winston.display(p)
+
+        # add(p, Curve(t, f2, "color", "red", "linewidth", 3))
+        # Winston.display(p)
+        subplot(1,length(Ns),jj)
+        plot(t, f2, "r", linewidth = 3)
+        ylim(0, 0.6)
         println(mean(C))
     end
 end
@@ -49,7 +51,7 @@ function G(N, M, q)
     # computes matrix G[N,M] for a given q
     GG = floor(log(rand(N,M))/log(q))
     #float(rand(N,M) < q)
-    
+
     # Compute the edges: the boundary
     for ii = 2:N
         GG[ii, 1] = GG[ii, 1] + GG[ii-1, 1]
@@ -64,7 +66,7 @@ function G(N, M, q)
     ## Plot
     # imagesc((0,N),(M,0),GG)
     # sleep(.01)
-    
+
     return  GG[N, M]
 end
 
