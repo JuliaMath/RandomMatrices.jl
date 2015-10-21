@@ -12,4 +12,9 @@ Q=UniformHaar(2, N)
 println("Case 3")
 println("E(A*Q*B*Q'*A*Q*B*Q') = ", eval(expectation(N, :Q, :(A*Q*B*Q'*A*Q*B*Q'))))
 
+for elty in (Float64, Complex128)
+	A = Stewart(elty, N)
+	@test_approx_eq A'A eye(N)
+end
+
 end #_HAVE_GSL

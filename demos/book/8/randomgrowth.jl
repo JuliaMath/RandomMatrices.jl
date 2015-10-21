@@ -7,7 +7,7 @@ function random_growth(M, N, q)
 
     G[1,1] = true
     # update the possible sets
-    imagesc((0,N), (M,0), G)
+    display(imagesc((0,N), (M,0), G))
     for t = 1:T
         sets = next_possible_squares(G)
         ## Highlights all the possible squares
@@ -15,7 +15,7 @@ function random_growth(M, N, q)
             idx = sets[i]::(Int,Int)
             G[idx[1], idx[2]] = 0.25
         end
-        imagesc((0,N), (M,0), G)
+        display(imagesc((0,N), (M,0), G))
         sleep(.01)
 
         ## Actual growth
@@ -26,12 +26,12 @@ function random_growth(M, N, q)
                 G[idx[1], idx[2]] = ison
             end
         end
-        imagesc((0,N), (M,0), G)
+        display(imagesc((0,N), (M,0), G))
         G[G .== 0.5] = 1
         G[G .== 0.25] = 0
         sleep(.01)
     end
-    G
+    return G
 end
 
 function next_possible_squares(G)

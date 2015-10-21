@@ -3,6 +3,11 @@ RandomMatrices.jl
 
 Random matrix package for [Julia](http://julialang.org).
 
+[![RandomMatrices on Julia release](http://pkg.julialang.org/badges/RandomMatrices_release.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=release)
+[![RandomMatrices on Julia nightly](http://pkg.julialang.org/badges/RandomMatrices_nightly.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=nightly)
+[![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
+[![Coverage Status](https://coveralls.io/repos/jiahao/RandomMatrices.jl/badge.svg?branch=master)](https://coveralls.io/r/jiahao/RandomMatrices.jl?branch=master)
+
 This extends the [Distributions](https://github.com/JuliaStats/Distributions.jl)
 package to provide methods for working with matrix-valued random variables,
 a.k.a. random matrices. State of the art methods for computing random matrix
@@ -10,11 +15,6 @@ samples and their associated distributions are provided.
 
 The names of the various ensembles can vary widely across disciplines. Where possible,
 synonyms are listed.
-
-[![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_release.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=release)
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_nightly.svg)](http://pkg.julialang.org/?pkg=RandomMatrices&ver=nightly)
-[![Coverage Status](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)](https://img.shields.io/coveralls/jiahao/RandomMatrices.jl.svg)
 
 Additional functionality is provided when these optional packages are installed:
 - Symbolic manipulation of Haar matrices with [GSL.jl](https://github.com/jiahao/GSL.jl)
@@ -71,7 +71,7 @@ Hermite, Laguerre(m) and Jacobi(m1, m2) ensembles.
   `GaussianLaguerreTridiagonalMatrix(n, m, beta)`,
   `GaussianJacobiSparseMatrix(n, m1, m2, beta)`
   each construct a sparse `n`x`n` matrix for the corresponding matrix ensemble
-  for arbitrary positive finite `beta`. 
+  for arbitrary positive finite `beta`.
   `GaussianHermiteTridiagonalMatrix(n, Inf)` is also allowed.
   These sampled matrices have the same eigenvalues as above but are much faster
   to diagonalize oweing to their sparsity. They also extend Dyson's threefold
@@ -87,7 +87,7 @@ Hermite, Laguerre(m) and Jacobi(m1, m2) ensembles.
    is applied to the raw QR decomposition. By default, `correction=1` (Edelman's correction) is
    used. Other valid values are `0` (no correction) and `2` (Mezzadri's correction).
  - `NeedsPiecewiseCorrection()` implements a simple test to see if a correction is necessary.
- 
+
 - `InvariantEnsemble(str,n)`
    Generates a unitary invariant ensemble, where str determines the
    potential of the ensemble, see below.
@@ -151,15 +151,15 @@ Provides finite-dimensional matrix representations of stochastic operators.
 In the following, `dt` is the time interval being discretized over and `t_end` is the final time.
 
 - `BrownianProcess(dt, t_end)` generates a vector corresponding to a Brownian random walk starting
-   from time `t=0` and position `x=0` 
-- `WhiteNoiceProcess(dt, t_end)` generates a vector corresponding to white noise.
+   from time `t=0` and position `x=0`
+- `WhiteNoiseProcess(dt, t_end)` generates a vector corresponding to white noise.
 - `StochasticAiryProcess(dt, t_end, beta)` generates the largest eigenvalue corresponding to the
    stochastic Airy process with real positive `beta`. This is known to be distributed in the `t_end -> Inf`
    limit to the `beta`-Tracy-Widom law.
-   
+
 # Invariant ensembles
 
-`InvariantEnsemble(str,n)` supports n x n unitary invariant ensemble 
+`InvariantEnsemble(str,n)` supports n x n unitary invariant ensemble
  with distribution
 
 `exp(- Tr Q(M)) dM`
