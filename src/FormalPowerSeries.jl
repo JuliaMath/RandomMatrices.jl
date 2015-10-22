@@ -25,7 +25,7 @@ type FormalPowerSeries{Coefficients}
     for i=1:length(v)
       if v[i] != 0
         c[i-1] = v[i] #Note this off by 1 - allows constant term c[0] to be set
-      end     
+      end
     end
     FormalPowerSeries{Coefficients}(c)
   end
@@ -37,7 +37,7 @@ zero{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[])
 one{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[1])
 
 #Return truncated vector with c[i] = P[n[i]]
-function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: Vector{Index})
+function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: AbstractVector{Index})
   nn = length(n)
   c = zeros(nn)
   for (k,v) in P.c, i=1:nn
@@ -46,7 +46,7 @@ function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: Vector{Index})
   c
 end
 
-tovector(P::FormalPowerSeries, n::Integer)=tovector(P,[1:n])
+tovector(P::FormalPowerSeries, n::Integer)=tovector(P,1:n)
 
 
 # Basic housekeeping and properties
@@ -89,10 +89,10 @@ end
 function +{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
+    haskey(c,k) ? (c[k]+=v) : (c[k]=v)
   end
   for (k,v) in Q.c
-    haskey(c,k) ? (c[k]+=v) : (c[k]=v) 
+    haskey(c,k) ? (c[k]+=v) : (c[k]=v)
   end
   FormalPowerSeries{T}(c)
 end
@@ -100,10 +100,10 @@ end
 function -{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    c[k] = get(c,k,zero(T)) + v 
+    c[k] = get(c,k,zero(T)) + v
   end
   for (k,v) in Q.c
-    c[k] = get(c,k,zero(T)) - v 
+    c[k] = get(c,k,zero(T)) - v
   end
   FormalPowerSeries{T}(c)
 end
@@ -132,7 +132,7 @@ end
 function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k1, v1) in P.c, (k2, v2) in Q.c
-      c[k1+k2]=get(c, k1+k2, zero(T))+v1*v2 
+      c[k1+k2]=get(c, k1+k2, zero(T))+v1*v2
   end
   FormalPowerSeries{T}(c)
 end
@@ -196,10 +196,10 @@ end
 function reciprocal{T}(P::FormalPowerSeries{T}, n :: Integer)
   n<0 ? error(sprintf("Invalid inverse truncation length %d requested", n)) : true
 
-  a = tovector(P, [0:n-1]) #Extract original coefficients in vector
+  a = tovector(P, 0:n-1) #Extract original coefficients in vector
   a[1]==0 ? (error("Inverse does not exist")) : true
   inv_a1 = T<:Number ? 1.0/a[1] : inv(a[1])
-  
+
   b = zeros(n) #Inverse
   b[1] = inv_a1
   for k=2:n
@@ -208,7 +208,7 @@ function reciprocal{T}(P::FormalPowerSeries{T}, n :: Integer)
   FormalPowerSeries{T}(b)
 end
 
-#Derivative of fps [H. Sec.1.4, p.18] 
+#Derivative of fps [H. Sec.1.4, p.18]
 function derivative{T}(P::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
@@ -238,7 +238,7 @@ function ^{T}(P::FormalPowerSeries{T}, n :: Integer)
   elseif n > 1
     #The straightforward recursive way
     return P^(n-1) * P
-    #TODO implement the non-recursive formula 
+    #TODO implement the non-recursive formula
   elseif n==1
     return P
   else
@@ -251,13 +251,13 @@ end
 # Composition of fps [H, Sec.1.5, p.35]
 # This is the quick and dirty version
 function compose{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
-  sum([v * Q^k for (k, v) in P.c]) 
+  sum([v * Q^k for (k, v) in P.c])
 end
 
 
 #[H, p.45]
 function isalmostunit{T}(P::FormalPowerSeries{T})
-  (haskey(P.c, 0) && P.c[0]!=0) ? (return false) : 
+  (haskey(P.c, 0) && P.c[0]!=0) ? (return false) :
   (haskey(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
 end
 
@@ -269,7 +269,7 @@ end
 # and inverts it
 function reversion{T}(P::FormalPowerSeries{T}, n :: Integer)
   n>0 ? error("Need non-negative dimension") : nothing
-  
+
   Q = P
   A = zeros(n, n)
   #Construct the matrix representation (1.9-1), p.55
@@ -304,4 +304,3 @@ type FormalLaurentSeries{Coefficients}
     c
   end
 end
-

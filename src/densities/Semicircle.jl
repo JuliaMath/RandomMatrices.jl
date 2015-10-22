@@ -1,12 +1,14 @@
 #Wigner semicircle distribution
 
-importall Distributions
+import Distributions
+import Distributions: ContinuousUnivariateDistribution
+
 export Semicircle
 
 immutable Semicircle <: ContinuousUnivariateDistribution
     mean::Float64
     radius::Float64
-    Semicircle(mu, r) = r > 0 ? new(float64(mu), float64(r)) : 
+    Semicircle(mu, r) = r > 0 ? new(float64(mu), float64(r)) :
         error("radius r must be positive") #Constructor
 end
 
@@ -67,7 +69,7 @@ var(X::Semicircle)=std(X)^2
 if _HAVE_GSL
   function moment(X::Semicircle, order::Integer)
     a, r = X.mean, X.radius
-    if X.mean != 0 
+    if X.mean != 0
       a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
     else
       order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
@@ -83,7 +85,7 @@ end
 function cumulant(X::Semicircle, order::Integer)
   if X.mean != 0 error("not supported") end
   if order%2
-    order==0 ? 1 : (0.5*r)^(2n) * lassalle(order/2) 
+    order==0 ? 1 : (0.5*r)^(2n) * lassalle(order/2)
   else
     0
   end
@@ -106,7 +108,7 @@ end
 #Generating function methods
 ############################
 
-# characteristic function 
+# characteristic function
 function cf(X::Semicircle, t::Real)
   r = t * X.mean
   2 * besselj(1, r)/r
@@ -127,5 +129,3 @@ function rand(X::Semicircle)
   Y = rand(Beta(1.5, 1.5))
   X.mean + 2 * X.radius * Y - X.radius
 end
-
-

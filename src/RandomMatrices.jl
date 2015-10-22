@@ -1,6 +1,8 @@
 module RandomMatrices
-importall Distributions
-using Combinatorics
+import Distributions
+using Combinatorics,Compat
+
+import Distributions: ContinuousMatrixDistribution
 
 if VERSION < v"0.4-"
     using Docile
@@ -22,7 +24,7 @@ export bidrand,    #Generate random bidiagonal matrix
        eigvalrand, #Generate random set of eigenvalues
        eigvaljpdf  #Eigenvalue joint probability density
 
-typealias Dim2 (Int, Int) #Dimensions of a rectangular matrix
+typealias Dim2 @compat(Tuple{Int,Int}) #Dimensions of a rectangular matrix
 
 #Classical Gaussian matrix ensembles
 include("GaussianEnsembles.jl")
@@ -61,4 +63,3 @@ if filemode(Pkg.dir("ApproxFun")) != 0
 end
 
 end
-

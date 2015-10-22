@@ -1,6 +1,6 @@
 #jacobigrowth2.jl
 
-using Distributions
+import Distributions
 function jacobigrowth2(m1,m2,p,beta)
    CJ=eye(p)
    SJ=zeros(p, p)
