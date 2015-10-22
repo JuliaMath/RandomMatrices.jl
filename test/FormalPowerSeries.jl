@@ -4,19 +4,19 @@ MaxRange = 50
 MatrixSize=15
 TT=Int64
 
-(n1, n2, n3) = int(rand(3)*MaxSeriesSize)
+(n1, n2, n3) = round(Int,rand(3)*MaxSeriesSize)
 
-X = FormalPowerSeries{TT}(int(rand(n1)*MaxRange))
-Y = FormalPowerSeries{TT}(int(rand(n2)*MaxRange))
-Z = FormalPowerSeries{TT}(int(rand(n3)*MaxRange))
+X = FormalPowerSeries{TT}(round(Int,rand(n1)*MaxRange))
+Y = FormalPowerSeries{TT}(round(Int,rand(n2)*MaxRange))
+Z = FormalPowerSeries{TT}(round(Int,rand(n3)*MaxRange))
 
-c = int(rand()*MatrixSize) #Size of matrix representation to generate
+c = round(Int,rand()*MatrixSize) #Size of matrix representation to generate
 
-nzeros = int(rand()*MaxSeriesSize)
+nzeros = round(Int,rand()*MaxSeriesSize)
 @assert X == trim(X)
 XX = deepcopy(X)
-for i=1:nzeros  
-    idx = int(rand()*MaxRange)
+for i=1:nzeros
+    idx = round(Int,rand()*MaxRange)
     if !haskey(XX.c, idx)
         XX.c[idx] = convert(TT, 0)
     end
@@ -46,7 +46,7 @@ end
 #of the original series
 #Force reciprocal to exist
 X.c[0] = 1
-discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c),[0:c-1])))
+discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c),0:c-1)))
 if discrepancy > c*sqrt(eps())
     error(@sprintf("Error %f exceeds tolerance %f", discrepancy, c*sqrt(eps())))
 end

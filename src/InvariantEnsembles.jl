@@ -1,6 +1,6 @@
 # Computes samples of unitary invariant ensembles matrices of size nxn
 #
-# InvariantEnsemble(str,n) represents an n x n unitary invariant ensemble 
+# InvariantEnsemble(str,n) represents an n x n unitary invariant ensemble
 # with distribution
 #
 #   exp(- Tr Q(M)) dM
@@ -14,14 +14,14 @@
 #       CoshUnscaled:       Q(M) = cosh(M)
 #       QuarticUnscaled:    Q(M) = M^4
 #       EightUnscaled:      Q(M) = M^8
-# 
+#
 # References:
 #    Olver, Rao & Trogdon 2014 arXiv:1404.007
 
 
 
 module InvariantEnsembles
-    using ApproxFun, RandomMatrices
+    using ApproxFun, RandomMatrices, Compat
 
 export InvariantEnsemble
 
@@ -32,7 +32,7 @@ export InvariantEnsemble
 ## Construct orthogonal polynomials as Funs from first moment and recurrence relationship
 function orthonormalpolynomials(μ0,α::Vector,β::Vector,d)
     n=length(α)+1
-    
+
     p=Array(Fun{Chebyshev,Float64},n)
     p[1] = Fun([μ0],d)
     p[2] = multiplybyx(p[1])./β[1] - p[1].*α[1]./β[1]
@@ -58,7 +58,7 @@ end
 function orthonormalpolynomialsvalues(μ0,α::Vector,β::Vector,x)
     n=length(α)+1
     m=length(x)
-    
+
     p=Array(Float64,m,n)
 
     p[:,1] = μ0*ones(m)
@@ -91,17 +91,17 @@ function InvariantEnsemble{F<:Fun}(p::Array{F},V::Function,d,n::Integer)
     error("Reimplement with matrix")
 
 #     wsq=IFun(x->exp(-n/2.*V(x)),d)
-#     
+#
 #     #We now extend the lengths
-#     m=length(wsq)+2n    
+#     m=length(wsq)+2n
 #     p=map(f->pad(f,m),p)
-#     
+#
 #     # We want to multiply, but in value space to
 #     # take advantage of wsq being very small
-#     
+#
 #     wsqv=exp(-n/2.*V(points(wsq.domain,m)))
 #     q=map(f->IFun(chebyshevtransform(wsqv.*values(f)),f.domain),p)
-# 
+#
 #     InvariantEnsemble(q)
 
 end
@@ -117,73 +117,73 @@ function adaptiveie(w,μ0,α,β,d)
     m=2^logn + 1
     pts=points(Interval(d),m)
     pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
-    
+
     wv=w(pts)
-    
+
     cfs=chebyshevtransform(pv[:,end].^2.*wv)
-    
+
     if maximum(abs(cfs[end-8:end])) < 200*eps()
         ## chop to minimize oversample
-    
+
         m=length(chop!(cfs,200*eps()))
-        
+
         pts=points(Interval(d),m)
         pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
-        wv=w(pts)        
-    
+        wv=w(pts)
+
         return InvariantEnsemble(diagm(sqrt(wv))*pv,d)
     end
   end
-    
+
   error("Did not converge")
 end
 
 #Reads in recurrence relationship and constructs OPs
-function InvariantEnsemble(str::String,V::Function,d,n::Integer)
+function InvariantEnsemble(str::@compat(AbstractString),V::Function,d,n::Integer)
     file = Pkg.dir("RandomMatrices/data/CoefficientDatabase/" * str * "/" * string(n))
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
     a=reshape((A[1,1:end-1]),size(A)[2]-1)
     b=reshape(A[2,2:end],size(A)[2]-1)
-    
+
     adaptiveie(x->exp(-n.*V(x)),μ0,a,sqrt(b),d)
 end
 
 
 # For constructing InvariantEnsembles that do not scale with n
-function InvariantEnsembleUnscaled(str::String,V::Function,d,n::Integer)
+function InvariantEnsembleUnscaled(str::@compat(AbstractString),V::Function,d,n::Integer)
     file = Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled/" * str * "/")
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
     a=reshape((A[1,1:end-1]),size(A)[2]-1)
     b=reshape(A[2,2:end],size(A)[2]-1)
-    
-    
-    adaptiveie(x->exp(-V(x)),μ0,a[1:n-1],sqrt(b[1:n-1]),d)  
+
+
+    adaptiveie(x->exp(-V(x)),μ0,a[1:n-1],sqrt(b[1:n-1]),d)
 end
 
 
 
 #Decides whether to use built in recurrence or read it in
 # Also contains ensemble data
-function InvariantEnsemble(str::String,n::Integer)
+function InvariantEnsemble(str::@compat(AbstractString),n::Integer)
     if(str == "GUE")
-        InvariantEnsemble(str,x->x.^2,[-3.,3.],n)            
+        InvariantEnsemble(str,x->x.^2,[-3.,3.],n)
     elseif(str == "Quartic")
         InvariantEnsemble(str,x->x.^4,[-3.,3.],n)
     elseif(str == "Eight")
-        InvariantEnsemble(str,x->x.^8,[-3.,3.],n)           
-    elseif(str == "HODecay")  
-        InvariantEnsemble(str,x->x.^4/20 -4/15*x.^3 + x.^2/5+8/5*x,[-4.,6.],n)           
+        InvariantEnsemble(str,x->x.^8,[-3.,3.],n)
+    elseif(str == "HODecay")
+        InvariantEnsemble(str,x->x.^4/20 -4/15*x.^3 + x.^2/5+8/5*x,[-4.,6.],n)
     elseif(str == "Legendre")
         error("Legendre not implemented")
-        #InvariantEnsembles(map(f->pad(f,2n),legendrepolynomials(n)))         
+        #InvariantEnsembles(map(f->pad(f,2n),legendrepolynomials(n)))
     elseif(str == "CoshUnscaled")
-        InvariantEnsembleUnscaled("Cosh",x->cosh(x),[-2acosh(1.n),2acosh(1.n)],n)    
+        InvariantEnsembleUnscaled("Cosh",x->cosh(x),[-2acosh(1.n),2acosh(1.n)],n)
     elseif(str == "EightUnscaled")
-        InvariantEnsembleUnscaled("Eight",x->x.^8,[-3.n^(1/8),3.n^(1/8)],n)    
+        InvariantEnsembleUnscaled("Eight",x->x.^8,[-3.n^(1/8),3.n^(1/8)],n)
     elseif(str == "QuarticUnscaled")
-        InvariantEnsembleUnscaled("Quartic",x->x.^4,[-3.n^(1/4),3.n^(1/4)],n)    
+        InvariantEnsembleUnscaled("Quartic",x->x.^4,[-3.n^(1/4),3.n^(1/4)],n)
     end
 end
 
@@ -192,19 +192,19 @@ end
 iekernel(q::Array{Float64,2},d)=iekernel(q,d,plan_chebyshevtransform(q[:,1]))
 function iekernel(q::Array{Float64,2},d,plan::Function)
     n=size(q)[1]
-    m=size(q)[2]    
+    m=size(q)[2]
     ret=zeros(n)
     for i = 1:m
         for k = 1:n
             ret[k] += q[k,i].*q[k,i]
         end
     end
-  
+
   Fun(chebyshevtransform(ret,plan),d)
 end
 
 
-samplespectra(str::String,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
+samplespectra(str::@compat(AbstractString),n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
 
 
 # Sample eigenvalues of invariant ensemble, m times
@@ -239,9 +239,9 @@ samplespectra(q::Array{Float64,2},d)=samplespectra(q,d,plan_chebyshevtransform(q
 
 function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
     n = size(q,2)
-    r=Array(Float64,n)   
+    r=Array(Float64,n)
 
-    
+
     for k=1:n-1
         m = n - k + 1
         r[k] = samplecdf(normalizedcumsum!(iekernel(q,d,plan).coefficients/m))
@@ -250,9 +250,9 @@ function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
         Q=null(f')
         q=q*Q
     end
-    
+
     r[n] = sample(iekernel(q,d,plan))
-    
+
     r
 end
 
@@ -262,7 +262,7 @@ function iekernel{F<:Fun}(p::Array{F})
     for i = 1:length(p)
         ret += fasttimes(p[i],p[i])
     end
-    
+
     ret
 end
 
@@ -290,7 +290,7 @@ samplespectra(p::InvariantEnsemble)=samplespectra(p.basis,p.domain)
 
 function spectradatabase(str,n::Integer,m::Colon)
   file = Pkg.dir("RandomMatrices/data/SpectraDatabase/" * str * "/" * string(n) * ".csv");
-  
+
   if(filesize(file) == 0)
     []
   else
@@ -299,16 +299,16 @@ function spectradatabase(str,n::Integer,m::Colon)
 end
 
 function spectradatabase(str,n::Integer,m::Integer)
-    if  filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabase")) == 0 ||         
-        filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled")) == 0    
+    if  filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabase")) == 0 ||
+        filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled")) == 0
         error("No coefficient database found.  InvariantEnsembles package corrupted.")
     end
 
 
-    dir = Pkg.dir("RandomMatrices/data/SpectraDatabase")    
+    dir = Pkg.dir("RandomMatrices/data/SpectraDatabase")
     if filesize(dir) == 0
         warn("Creating SpectraDatabase folder " * dir)
-  
+
         mkdir(dir)
     end
 
@@ -317,36 +317,36 @@ function spectradatabase(str,n::Integer,m::Integer)
 
     if filesize(dir) == 0
         warn("Creating folder " * dir)
-  
+
         mkdir(dir)
     end
 
   file = dir * "/" * string(n) * ".csv"
-  
-  
+
+
   if filesize(file) == 0
     warn("No existing samples found.  Creating sample database.");
-    
+
     ie = InvariantEnsemble(str,n)
-  
+
     A=eigvalrand(ie,m+1)
-    writedlm(file,A,',')    
+    writedlm(file,A,',')
   else
     A = readdlm(file,',')
-    
+
     if ( m > size(A)[1])
       warn(string(m) * " is greater than current samples " * string(size(A)[1]) * ".  Generating more samples");
-      
-      ie = InvariantEnsemble(str,n)      
-      
+
+      ie = InvariantEnsemble(str,n)
+
       An=eigvalrand(ie,m-size(A)[1]+1)
-      
+
       A = vcat(A,An)
-      
+
       writedlm(file,A,',')
     end
   end
-  
+
     return A[1:m,:]
 end
 

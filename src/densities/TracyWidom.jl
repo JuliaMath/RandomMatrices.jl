@@ -1,6 +1,6 @@
 #Computes the Tracy-Widom distribution by directly solving the
 #Painlevé II equation
-importall Distributions
+import Distributions
 export TracyWidom
 using ODE
 
@@ -30,4 +30,3 @@ function rand(d::TracyWidom, n::Integer)
   B=randn(n-k+1)
   v=eigmax(SymTridiagonal(B, A))
 end
-

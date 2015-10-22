@@ -1,4 +1,4 @@
-using Distributions
+import Distributions
 
 #Compute Mauchly's statistic (valid under assumption of multinormality)
 #Mauchly, 1940; Kendall and Stuart, 1968
@@ -23,4 +23,3 @@ function JohnstoneSphericityTestStatistic{T<:Real}(PopulationCovariance::Abstrac
     sigma=sqrt(mu)*(1/sqrt(n-1)+1/sqrt(p))^(1/3)
     (n*l-mu)/sigma #To be tested against Tracy-Widom with beta=1
 end
-
