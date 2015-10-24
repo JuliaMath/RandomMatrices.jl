@@ -2,7 +2,7 @@ module RandomMatrices
 import Distributions
 using Combinatorics,Compat
 
-import Distributions: ContinuousMatrixDistribution
+import Distributions: ContinuousMatrixDistribution, Chisq
 
 if VERSION < v"0.4-"
     using Docile
