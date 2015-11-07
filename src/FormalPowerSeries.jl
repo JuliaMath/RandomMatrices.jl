@@ -193,12 +193,12 @@ end
 #TODO implement the FFT-based algorithm of one of the following
 #  doi:10.1109/TAC.1984.1103499
 #  https://cs.uwaterloo.ca/~glabahn/Papers/tamir-george-1.pdf
-function reciprocal{T}(P::FormalPowerSeries{T}, n :: Integer)
-  n<0 ? error(sprintf("Invalid inverse truncation length %d requested", n)) : true
+function reciprocal{T}(P::FormalPowerSeries{T}, n::Integer)
+  n<0 && error(sprintf("Invalid inverse truncation length %d requested", n))
 
   a = tovector(P, 0:n-1) #Extract original coefficients in vector
-  a[1]==0 ? (error("Inverse does not exist")) : true
-  inv_a1 = T<:Number ? 1.0/a[1] : inv(a[1])
+  a[1]==0 && error("Inverse does not exist")
+  inv_a1 = inv(a[1])
 
   b = zeros(n) #Inverse
   b[1] = inv_a1
@@ -210,13 +210,13 @@ end
 
 #Derivative of fps [H. Sec.1.4, p.18]
 function derivative{T}(P::FormalPowerSeries{T})
-  c = Dict{BigInt, T}()
-  for (k,v) in P.c
-    if k != 0 && v != 0
-      c[k-1] = k*v
+    c = Dict{BigInt, T}()
+    for (k,v) in P.c
+        if k != 0 && v != 0
+            c[k-1] = k*v
+        end
     end
-  end
-  FormalPowerSeries{T}(c)
+    FormalPowerSeries{T}(c)
 end
 
 #[H, Sec.1.4, p.18]
@@ -233,17 +233,17 @@ end
 
 # Power of fps [H, Sec.1.5, p.35]
 function ^{T}(P::FormalPowerSeries{T}, n :: Integer)
-  if n == 0
-    return FormalPowerSeries{T}([convert(T, 1)])
-  elseif n > 1
-    #The straightforward recursive way
-    return P^(n-1) * P
-    #TODO implement the non-recursive formula
-  elseif n==1
-    return P
-  else
-    error(@sprintf("I don't know what to do for power n = %d", n))
-  end
+    if n == 0
+        return FormalPowerSeries{T}([one(T)])
+    elseif n > 1
+        #The straightforward recursive way
+        return P^(n-1) * P
+        #TODO implement the non-recursive formula
+    elseif n==1
+        return P
+    else
+        error("I don't know what to do for power n = $n")
+    end
 end
 
 

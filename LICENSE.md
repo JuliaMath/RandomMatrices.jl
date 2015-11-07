@@ -1,6 +1,6 @@
 The RandomMatrices Julia module is licensed under the MIT License:
 
-> Copyright (c) 2013-2014: Jiahao Chen, Alan Edelman, Jameson Nash, Sheehan
+> Copyright (c) 2013-2015: Jiahao Chen, Alan Edelman, Jameson Nash, Sheehan
 > Olver and other contributors
 >
 > Permission is hereby granted, free of charge, to any person obtaining

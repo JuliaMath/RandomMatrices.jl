@@ -139,7 +139,7 @@ function adaptiveie(w,μ0,α,β,d)
 end
 
 #Reads in recurrence relationship and constructs OPs
-function InvariantEnsemble(str::@compat(AbstractString),V::Function,d,n::Integer)
+function InvariantEnsemble(str::AbstractString,V::Function,d,n::Integer)
     file = Pkg.dir("RandomMatrices/data/CoefficientDatabase/" * str * "/" * string(n))
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
@@ -151,7 +151,7 @@ end
 
 
 # For constructing InvariantEnsembles that do not scale with n
-function InvariantEnsembleUnscaled(str::@compat(AbstractString),V::Function,d,n::Integer)
+function InvariantEnsembleUnscaled(str::AbstractString,V::Function,d,n::Integer)
     file = Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled/" * str * "/")
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
@@ -166,7 +166,7 @@ end
 
 #Decides whether to use built in recurrence or read it in
 # Also contains ensemble data
-function InvariantEnsemble(str::@compat(AbstractString),n::Integer)
+function InvariantEnsemble(str::AbstractString,n::Integer)
     if(str == "GUE")
         InvariantEnsemble(str,x->x.^2,[-3.,3.],n)
     elseif(str == "Quartic")
@@ -204,7 +204,8 @@ function iekernel(q::Array{Float64,2},d,plan::Function)
 end
 
 
-samplespectra(str::@compat(AbstractString),n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
+<<<<<<< 16c414b28d81a04c589c8ec5e66aa724f4e110f0
+samplespectra(str::AbstractString,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
 
 
 # Sample eigenvalues of invariant ensemble, m times

@@ -4,10 +4,6 @@ using Combinatorics,Compat
 
 import Distributions: ContinuousMatrixDistribution
 
-if VERSION < v"0.4-"
-    using Docile
-end
-
 import Base.rand
 
 #If the GNU Scientific Library is present, turn on additional functionality.
@@ -24,16 +20,14 @@ export bidrand,    #Generate random bidiagonal matrix
        eigvalrand, #Generate random set of eigenvalues
        eigvaljpdf  #Eigenvalue joint probability density
 
-typealias Dim2 @compat(Tuple{Int,Int}) #Dimensions of a rectangular matrix
+typealias Dim2 Tuple{Int, Int} #Dimensions of a rectangular matrix
 
 #Classical Gaussian matrix ensembles
 include("GaussianEnsembles.jl")
 
-
 # Classical univariate distributions
 include("densities/Semicircle.jl")
 include("densities/TracyWidom.jl")
-
 
 # Ginibre
 include("Ginibre.jl")
@@ -58,7 +52,7 @@ include("StatisticalTests.jl")
 include("StochasticProcess.jl")
 
 #Invariant ensembles
-if filemode(Pkg.dir("ApproxFun")) != 0
+if Pkg.installed("ApproxFun")!== nothing
     include("InvariantEnsembles.jl")
 end
 
