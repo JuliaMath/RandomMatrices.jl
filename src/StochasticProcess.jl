@@ -1,51 +1,54 @@
 #Matrices related to stochastic processes
 
-abstract StochasticProcess
-export evolve
+import Base: start, next, done
+export AiryProcess, BrownianProcess, WhiteNoiseProcess
 
-immutable BrownianProcess <: StochasticProcess
+abstract StochasticProcess{T<:Real}
+
+immutable WhiteNoiseProcess{T<:Real} <: StochasticProcess{T}
+    dt::T
 end
 
-# Generates Brownian motion
-evolve(p::BrownianProcess, dx::Real, xend::Real) = cumsum(WhiteNoiseProcess(dx, xend))
+immutable BrownianProcess{T<:Real} <: StochasticProcess{T}
+    dt::T
+end
 
-# Generates a white noise process
-function WhiteNoiseProcess(dx::Real, xend::Real)
-  x=[0:dx:xend]
-  randn(length(x),1)*sqrt(dx)
+type AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
+    dt::T
+    beta::S
+end
+
+done{T}(p::StochasticProcess{T}) = false #Processes can always go on forever
+
+#######################
+# White noise process #
+#######################
+
+start{T}(p::WhiteNoiseProcess{T}) = nothing
+next{T}(p::WhiteNoiseProcess{T}, x::Void=nothing) = (randn()*sqrt(p.dt), nothing)
+
+####################
+# Brownian process #
+####################
+
+start{T}(p::BrownianProcess{T}) = zero(T)
+function next{T}(p::BrownianProcess{T}, x::T)
+    newx = x + randn()*sqrt(p.dt)
+    newx, newx
 end
 
 ################
 # Airy process #
 ################
+start{T}(p::AiryProcess{T}) = SymTridiagonal(T[-(2/p.dt^2)], T[])
+function next{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
+    t = (size(S, 1)-1)*p.dt
 
-immutable AiryProcess <: StochasticProcess
-  beta::Real
+    #Discretized Airy operator plus diagonal noise
+    x = inv(p.dt^2)
+    push!(S.dv, -2x - t + 2/sqrt(p.beta/p.dt)*randn())
+    push!(S.ev, x)
+
+    (eigmax(S)*p.dt^2, S)
 end
 
-# Calculates the largest eigenvalue of a stochastic Airy process
-# with Brownian noise
-function evolve(p::AiryProcess, dx::Real, xend::Real)
-    x=[0:dx:xend]
-    N=length(x)
-
-    #Discretized Airy operator
-    a=-(2/dx^2)*ones(N) - x
-    b=+(1/dx^2)*ones(N-1)
-    #Plus noise
-    dW=WhiteNoiseProcess(dx, xend)
-    a+=(2/sqrt(p.beta))*dW/dx
-
-    maxeig(SymTridiagonal(a,b))
-end
-
-#Sample program
-#t=10000 #number of trials
-#v=[AiryProcess(0.001, 10, 2) for i=1:t]
-#binsize=.2
-#grid=[-5:binsize:2]
-#x=hist(v, grid)
-#for i=1:length(grid)
-#    @printf("%10.5f  %8d  %s\n",grid[i],x[i],repeat("*",int(x[i]/(t*binsize)*200)))
-#end
- 
