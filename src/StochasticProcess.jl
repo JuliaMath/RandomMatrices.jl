@@ -18,7 +18,7 @@ type AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
     beta::S
 end
 
-done{T}(p::StochasticProcess{T}) = false #Processes can always go on forever
+done{T}(p::StochasticProcess{T}, x...) = false #Processes can always go on forever
 
 #######################
 # White noise process #
