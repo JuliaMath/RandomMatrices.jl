@@ -13,81 +13,133 @@
 # Alan Edelman, Per-Olof Persson and Brian D Sutton, "The fourfold way"
 # http://www-math.mit.edu/~edelman/homepage/papers/ffw.pdf
 
+import Distributions: Chisq
+import Base: isinf, rand
 export GaussianHermite, GaussianLaguerre, GaussianJacobi,
        Wigner, Wishart, MANOVA #Synonyms for Hermite, Laguerre and Jacobi
 
 #A convenience function to define a chi scalar random variable
-chi(df::Real) = sqrt(rand(Chisq(df)))
+χ(df::Real) = √(rand(Chisq(df)))
 
 #####################
 # Hermite ensemble #
 #####################
 
-type GaussianHermite <: ContinuousMatrixDistribution
-  beta::Real
-end
-typealias Wigner  GaussianHermite
+"""
+GaussianHermite{β} represents a Gaussian Hermite ensemble with parameter β.
 
-# Generates a NxN symmetric Wigner matrix
-function rand(d::GaussianHermite, n::Integer)
-  if d.beta == 1 #real
+Wigner{β} is a synonym.
+
+Example of usage:
+
+    β = 2 #β = 1, 2, 4 generates real, complex and quaternionic matrices respectively.
+    d = Wigner{β} #same as GaussianHermite{β}
+    
+    n = 20 #Generate square matrices of this size
+
+    S = rand(d, n)       #Generate a 20x20 symmetric Wigner matrix
+    T = tridrand(d, n)   #Generate the symmetric tridiagonal form
+    v = eigvalrand(d, n) #Generate a sample of eigenvalues
+"""
+immutable GaussianHermite{β} <: ContinuousMatrixDistribution end
+GaussianHermite(β) = GaussianHermite{β}()
+
+"""
+Synonym for GaussianHermite{β}
+"""
+typealias Wigner{β} GaussianHermite{β}
+
+rand{β}(d::Type{Wigner{β}}, dims...) = rand(d(), dims...)
+
+function rand(d::Wigner{1}, n::Int)
     A = randn(n, n)
-  elseif d.beta == 2 #complex
+    normalization = √(2*n)
+    return Symmetric((A + A') / normalization)
+end
+
+function rand(d::Wigner{2}, n::Int)
     A = randn(n, n) + im*randn(n, n)
-  elseif d.beta == 4 #quaternion
+    normalization = √(4*n)
+    return Hermitian((A + A') / normalization)
+end
+
+function rand(d::Wigner{4}, n::Int)
     #Employs 2x2 matrix representation of quaternions
     X = randn(n, n) + im*randn(n, n)
     Y = randn(n, n) + im*randn(n, n)
     A = [X Y; -conj(Y) conj(X)]
-  else
-    error(@sprintf("beta = %d is not implemented", d.beta))
-  end
-  normalization = sqrt(2*d.beta*n)
-  return (A + A') / normalization
+    normalization = √(8*n)
+    return Hermitian((A + A') / normalization)
 end
 
-rand(d::GaussianHermite, dims::Dim2) = dims[1]==dims[2] ? rand(d, dims[1]) : error("Can only generate square matrices")
+rand{β}(d::Wigner{β}, n::Int) = 
+    throw(ValueError("Cannot sample random matrix of size $n x $n for β=$β"))
 
-
-#Generates a NxN tridiagonal Wigner matrix
-#The beta=infinity case is defined in Edelman, Persson and Sutton, 2012
-function tridrand(d::GaussianHermite, n::Integer)
-  if d.beta<=0 error("beta must be positive") end
-  if d.beta==Inf return SymTridiagonal(zeros(n), [sqrt(x/2) for x=n-1:-1:1]) end
-  Hdiag = randn(n)/sqrt(n)
-  Hsup = [chi(d.beta*i)/sqrt(2*n) for i=n-1:-1:1]
-  return SymTridiagonal(Hdiag, Hsup)
-end
-
-tridrand(d::GaussianHermite, dims::Dim2) = dims[1]==dims[2] ? tridrand(d, dims[1]) : error("Can only generate square matrices")
-
-#Return n eigenvalues distributed according to the Hermite ensemble
-eigvalrand(d::GaussianHermite, n::Integer) = eigvals(tridrand(d, n))
-
-#Calculate Vandermonde determinant term
-function VandermondeDeterminant{Eigenvalue<:Number}(lambda::Vector{Eigenvalue}, beta::Real)
-  n = length(lambda)
-  Vandermonde = 1.0
-  for j=1:n
-    for i=1:j-1
-      Vandermonde *= abs(lambda[i] - lambda[j])^beta
+function rand{β}(d::Wigner{β}, dims...)
+    if length(dims)==2 && dims[1] == dims[2]
+	return rand(d, dims[1])
+    else
+        throw(ValueError("Cannot sample random matrix of size $dims for β=$β"))
     end
-  end
-  Vandermonde
 end
 
-function eigvaljpdf{Eigenvalue<:Number}(d::GaussianHermite, lambda::Vector{Eigenvalue})
-  n = length(lambda)
-  #Calculate normalization constant
-  c = (2pi)^(-n/2)
-  for j=1:n
-    c *= gamma(1 + beta/2)/gamma(1 + beta*j/2)
-  end
-  Energy = sum(lambda.^2/2) #Calculate argument of exponential
-  VandermondeDeterminant(lambda, beta) * exp(-Energy)
+"""
+Generates a nxn symmetric tridiagonal Wigner matrix
+
+Unlike for `rand(Wigner{β}, n)`, which is restricted to β=1,2 or 4,
+`trirand(Wigner{β}, n)` will generate a 
+
+The β=∞ case is defined in Edelman, Persson and Sutton, 2012
+"""
+function tridrand{β}(d::Wigner{β}, n::Int)
+    if β≤0
+	throw(ValueError("β = $β cannot be nonpositive"))
+    elseif isinf(β)
+	return tridrand(Wigner{Inf}, n)
+    else
+        Hd = randn(n)/√(n)
+        He = [χ(β*i)/√(2*n) for i=n-1:-1:1]
+        return SymTridiagonal(Hd, He)
+    end
+end
+function tridrand{β}(d::Wigner{β}, dims...)
+    if length(dims)==2 && dims[1] == dims[2]
+	return rand(d, dims[1])
+    else
+        throw(ValueError("Cannot sample random matrix of size $dims for β=$β"))
+    end
 end
 
+"""
+Return n eigenvalues distributed according to the Hermite ensemble
+"""
+eigvalrand(d::Wigner, n::Int) = eigvals(tridrand(d, n))
 
+"""
+Calculate Vandermonde determinant term
+"""
+function VandermondeDeterminant{Eigenvalue<:Number}(λ::AbstractVector{Eigenvalue}, β::Real)
+    n = length(λ)
+    Vandermonde = one(Eigenvalue)^β
+    for j=1:n, i=1:j-1
+        Vandermonde *= abs(λ[i] - λ[j])^β
+    end
+    Vandermonde
+end
+
+"""
+Calculate joint eigenvalue density
+"""
+function eigvaljpdf{β,Eigenvalue<:Number}(d::Wigner{β}, λ::AbstractVector{Eigenvalue})
+    n = length(λ)
+    #Calculate normalization constant
+    c = (2π)^(-n/2)
+    for j=1:n
+        c *= gamma(1 + β/2)/gamma(1 + β*j/2)
+    end
+    Energy = sum(λ.^2/2) #Calculate argument of exponential
+    VandermondeDeterminant(λ, β) * exp(-Energy)
+end
 
 #####################
 # Laguerre ensemble #
