@@ -1,6 +1,6 @@
 # Random samples from determinantal point processes
 
-@doc doc"""
+"""
 Computes a random sample from the determinantal point process defined by the
 spectral factorization object `L`.
 
@@ -40,7 +40,9 @@ References:
         archivePrefix = {arXiv},
         eprint = {1207.6083},
     }
-""" ->
+
+    TODO Check loss of orthogonality - a tip from Zelda Mariet
+"""
 function rand{S<:Real,T}(L::Base.LinAlg.Eigen{S,T})
     N = length(L.values)
     J = Int[]
