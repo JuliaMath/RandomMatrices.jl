@@ -1,7 +1,7 @@
-The RandomMatrices Julia module is licensed under the MIT License:
+The RandomMatrices Julia package is licensed under the MIT License:
 
-> Copyright (c) 2013-2015: Jiahao Chen, Alan Edelman, Jameson Nash, Sheehan
-> Olver and other contributors
+> Copyright (c) 2013-2016: Jiahao Chen, Alan Edelman, Jameson Nash, Sheehan
+> Olver, Andreas Noack, and [other contributors](https://github.com/jiahao/RandomMatrices.jl/graphs/contributors)
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
