@@ -168,12 +168,14 @@ In the following, `dt` is the time interval being discretized over and `t_end` i
  `str` specifies an ensemble with precomputed recurrence coefficients.
   The currently include ensembles are
 
- - Quartic:            		Q(M) = n M^4
- - Eight:              		Q(M) = n M^8
- - HODecay:            		Q(M) = n (M^4/20 - 4/15M^3 +M^2/5 + 8/5M)
- - CoshUnscaled:       		Q(M) = cosh(M)
- -  QuarticUnscaled:    		Q(M) = M^4
- -  EightUnscaled:      		Q(M) = M^8
+|                   | Q(M) |
+| ----------------- | ----- |
+| `Quartic`         | n M^4 |
+| `Eighth`          | n M^8 |
+| `HODecay`         | n (M^4/20 - 4/15M^3 +M^2/5 + 8/5M) |
+| `CoshUnscaled`    | cosh(M) |
+| `QuarticUnscaled` | M^4     |
+| `EightUnscaled`   | M^8     |
 
 # References
 - James Albrecht, Cy Chan, and Alan Edelman,
