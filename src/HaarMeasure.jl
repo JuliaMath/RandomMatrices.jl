@@ -66,23 +66,16 @@ end
 #4235–4245 (1994).
 
 using Base.LinAlg: BlasInt
+_blasfunc = Base.VERSION < v"0.5-" ? Base.blasfunc : eval(Base, "@blasfunc")
 for (s, elty) in (("dlarfg_", Float64),
                   ("zlarfg_", Complex128))
-    if Base.VERSION < v"0.5-"
-	@eval begin
-            function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-		ccall(($(Base.blasfunc(s)), Base.liblapack_name), Void,
-		    (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
-                    &n, α, x, &incx, τ)
-            end
-        end
-    else
-	@eval begin
-            function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-		ccall(($(Base.@blasfunc(s)), Base.liblapack_name), Void,
-		    (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
-                    &n, α, x, &incx, τ)
-            end
+
+    blass = _blasfunc(s)
+    @eval begin
+        function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
+	    ccall(($blass, Base.liblapack_name), Void,
+		  (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
+                  &n, α, x, &incx, τ)
         end
     end
 end
