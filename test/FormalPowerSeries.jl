@@ -1,6 +1,8 @@
 using RandomMatrices
 using Base.Test
 
+srand(4)
+
 # Excursions in formal power series (fps)
 MaxSeriesSize=8
 MaxRange = 20
@@ -49,7 +51,11 @@ end
 #of the original series
 #Force reciprocal to exist
 X.c[0] = 1
-discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c), 0:c-1)))
+discrepancy = if Base.VERSION < v"0.5-"
+    (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c), 0:c-1)))
+else
+    (norm(inv(float(MatrixForm(X,c)))[1, :][:, 1] - tovector(reciprocal(X, c), 0:c-1)))
+end
 tol = c*√eps()
 if discrepancy > tol
     error(string("Error ", discrepancy, " exceeds tolerance ", tol))

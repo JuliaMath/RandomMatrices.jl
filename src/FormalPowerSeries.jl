@@ -22,7 +22,7 @@ type FormalPowerSeries{Coefficients}
   FormalPowerSeries{Coefficients}(c::Dict{BigInt, Coefficients}) = new(c)
   function FormalPowerSeries{Coefficients}(v::Vector{Coefficients})
     c=Dict{BigInt, Coefficients}()
-    for i=1:length(v)
+    for i in eachindex(v)
       if v[i] != 0
         c[i-1] = v[i] #Note this off by 1 - allows constant term c[0] to be set
       end
@@ -37,10 +37,10 @@ zero{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[])
 one{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[1])
 
 #Return truncated vector with c[i] = P[n[i]]
-function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n :: AbstractVector{Index})
+function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n::AbstractVector{Index})
   nn = length(n)
   c = zeros(nn)
-  for (k,v) in P.c, i=1:nn
+  for (k,v) in P.c, i in eachindex(n)
       n[i]==k && (c[i]=v)
   end
   c

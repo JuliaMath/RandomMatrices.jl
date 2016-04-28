@@ -65,19 +65,31 @@ end
 #Zyczkowski and Kus, Random unitary matrices, J. Phys. A: Math. Gen. 27,
 #4235–4245 (1994).
 
-### Stewarts algorithm for n^2 orthogonal random matrix
 using Base.LinAlg: BlasInt
 for (s, elty) in (("dlarfg_", Float64),
                   ("zlarfg_", Complex128))
-    @eval begin
-        function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-            ccall(($(Base.blasfunc(s)), Base.liblapack_name), Void,
-                (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
-                &n, α, x, &incx, τ)
+    if Base.VERSION < v"0.5-"
+	@eval begin
+            function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
+		ccall(($(Base.blasfunc(s)), Base.liblapack_name), Void,
+		    (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
+                    &n, α, x, &incx, τ)
+            end
+        end
+    else
+	@eval begin
+            function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
+		ccall(($(Base.@blasfunc(s)), Base.liblapack_name), Void,
+		    (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
+                    &n, α, x, &incx, τ)
+            end
         end
     end
 end
 
+"""
+Stewarts algorithm for n^2 orthogonal random matrix
+"""
 function Stewart(::Type{Float64}, n)
     τ = Array(Float64, n)
     H = randn(n, n)
