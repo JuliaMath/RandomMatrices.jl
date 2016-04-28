@@ -147,16 +147,23 @@ Famous distributions in random matrix theory
 
 # Stochastic processes
 
-Provides finite-dimensional matrix representations of stochastic operators.
+Julia iterators for stochastic operators.
 
-In the following, `dt` is the time interval being discretized over and `t_end` is the final time.
+All subtypes of `StochasticProcess` contain at least one field, `dt`,
+representing the time interval being discretized over.
 
-- `BrownianProcess(dt, t_end)` generates a vector corresponding to a Brownian random walk starting
-   from time `t=0` and position `x=0`
-- `WhiteNoiseProcess(dt, t_end)` generates a vector corresponding to white noise.
-- `StochasticAiryProcess(dt, t_end, beta)` generates the largest eigenvalue corresponding to the
-   stochastic Airy process with real positive `beta`. This is known to be distributed in the `t_end -> Inf`
-   limit to the `beta`-Tracy-Widom law.
+The available `StochasticProcess`es are
+
+- `BrownianProcess(dt)`: Brownian random walk.
+   The state of the iterator is the cumulative displacement of the random walk.
+- `WhiteNoiseProcess(dt)` : White noise.
+   The value of this iterator is `randn()*dt`.
+   The state associated with this iterator is `nothing`.
+- `StochasticAiryProcess(dt, beta)`: stochastic Airy process with real positive `beta`.
+   The value of this iterator in the limit of an infinite number of iterations
+   is known to follow the `beta`-Tracy-Widom law.
+   The state associated with this iteratior is a `SymTridiagonal` matrix whose
+   largest eigenvalue is the value of this process.
 
 # Invariant ensembles
 
