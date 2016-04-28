@@ -1,7 +1,7 @@
 #Matrices related to stochastic processes
 
 import Base: start, next, done
-export AiryProcess, BrownianProcess, WhiteNoiseProcess
+export AiryProcess, BrownianProcess, WhiteNoiseProcess, next!
 
 abstract StochasticProcess{T<:Real}
 
@@ -13,7 +13,7 @@ immutable BrownianProcess{T<:Real} <: StochasticProcess{T}
     dt::T
 end
 
-type AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
+immutable AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
     dt::T
     beta::S
 end
@@ -41,14 +41,31 @@ end
 # Airy process #
 ################
 start{T}(p::AiryProcess{T}) = SymTridiagonal(T[-(2/p.dt^2)], T[])
+
+"""
+Like next, but update only the state of the AiryProcess
+
+Skip the eigenvalue computation, which gets expensive
+"""
+function next!{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
+    t = (size(S, 1)-1)*p.dt
+
+    #Discretized Airy operator plus diagonal noise
+    x = inv(p.dt^2)
+    push!(S.dv, -2x - t + 2/sqrt(p.dt*p.beta)*randn())
+    push!(S.ev, x)
+
+    S
+end
 function next{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
     t = (size(S, 1)-1)*p.dt
 
     #Discretized Airy operator plus diagonal noise
     x = inv(p.dt^2)
-    push!(S.dv, -2x - t + 2/sqrt(p.beta/p.dt)*randn())
+    push!(S.dv, -2x - t + 2/sqrt(p.dt*p.beta)*randn())
     push!(S.ev, x)
 
-    (eigmax(S)*p.dt^2, S)
+    (eigmax(S), S)
 end
+
 
