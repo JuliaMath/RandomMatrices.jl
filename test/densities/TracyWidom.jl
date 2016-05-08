@@ -10,5 +10,5 @@ if isdefined(:ODE) && isa(ODE, Module)
     @test RandomMatrices.pdf(TracyWidom, t) > 0
 end
 
-@test rand(TracyWidom, 10) > 0
-@test rand(TracyWidom, 100) > 0
+@test isfinite(rand(TracyWidom, 10))
+@test isfinite(rand(TracyWidom, 100))

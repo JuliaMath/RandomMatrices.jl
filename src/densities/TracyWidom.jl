@@ -14,12 +14,14 @@ function pdf(d::TracyWidom, t::Real)
     t≤t0 && return 0.0
     t≥5  && return 0.0
 
-    deq(t, y) = [y[2]; t*y[1]+2y[1]^3; y[4]; y[1]^2]
+    deq(t, y) = [y[2], t*y[1]+2y[1]^3, y[4], y[1]^2]
 
-    y0=[airy(t0); airy(1, t0); 0; airy(t0)^2] # Initial conditions
-    (ts, y)=ode23(deq, [t0, t], y0)           # Solve the ODE
-    F2=exp(-y[:,3])                           # the cumulative distribution
-    f2=(F2[end]-F2[end-1])/(ts[end]-ts[end-1])# the density at t
+    a0 = airy(t0)
+    T = typeof(a0)
+    y0=T[a0, airy(1, t0), 0, airy(t0)^2]    # Initial conditions
+    (ts, y)=ode23(deq, y0, [t0, t])         # Solve the ODE
+    ΔF2=exp(-y[end-1][3]) - exp(-y[end][3]) # the cumulative distribution
+    f2=ΔF2/(ts[end]-ts[end-1])              # the density at t
 end
 pdf(d::Type{TracyWidom}, t::Real) = pdf(d(), t)
 
