@@ -1,6 +1,6 @@
 julia 0.4
 Combinatorics 0.2
-Distributions
-ODE
-GSL
+Distributions 0.8.10
+ODE 0.2.1
+GSL 0.3.2
 
