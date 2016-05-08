@@ -1,12 +1,16 @@
 export TracyWidom
 
-include("gradient.jl")
-
 """
 Tracy-Widom distribution
 
 The probability distribution of the normalized largest eigenvalue of a random
 Hermitian matrix.
+
+The cdf of Tracy-Widom is given by
+
+``
+F_2 (s) = lim_{n→∞} Pr(√2 n^{1/6} (λₙ - √(2n) ≤ s) 
+``
 
 References:
 
@@ -24,6 +28,11 @@ Probability density function of the Tracy-Widom distribution
 
 Computes the Tracy-Widom distribution by directly solving the
 Painlevé II equation using the ode23 numerical integrator
+
+# Arguments
+* `d::TracyWidom` or `Type{TracyWidom}`: an instance of `TracyWidom` or the type itself
+* `t::Real`: The point at which to evaluate the pdf
+* `t0::Real = -8.0`: The point at which to start integrating
 """
 function pdf{S<:Real}(d::TracyWidom, t::S, t0::S = convert(S, -8.0))
     t≤t0 && return 0.0
@@ -41,6 +50,8 @@ Cumulative density function of the Tracy-Widom distribution
 
 Computes the Tracy-Widom distribution by directly solving the
 Painlevé II equation using the ode23 numerical integrator
+
+See `pdf(::TracyWidom)` for a description of the arguments.
 """
 function cdf{S<:Real}(d::TracyWidom, t::S, t0::S = convert(S, -8.0))
     t≤t0 && return 0.0
