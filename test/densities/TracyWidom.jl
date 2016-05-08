@@ -3,11 +3,14 @@ using Base.Test
 
 #Test far outside support
 #Tracy-Widom has support on all x>0, but the integration won't pick it up
-@test RandomMatrices.pdf(TracyWidom, -10) == RandomMatrices.pdf(TracyWidom, 10) == 0
+@test pdf(TracyWidom, -10) == pdf(TracyWidom, 10) == 0
+@test cdf(TracyWidom, -10) == 0
+@test cdf(TracyWidom, 10) == 1
 
 if isdefined(:ODE) && isa(ODE, Module)
     t = rand()
-    @test RandomMatrices.pdf(TracyWidom, t) > 0
+    @test pdf(TracyWidom, t) > 0
+    @test 0 < cdf(TracyWidom, t) < 1
 end
 
 @test isfinite(rand(TracyWidom, 10))
