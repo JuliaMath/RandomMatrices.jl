@@ -6,15 +6,18 @@ using GSL
 using ODE
 
 import Base: isinf, rand
-import Distributions: ContinuousMatrixDistribution, Chi, cdf, pdf
+import Distributions: ContinuousUnivariateDistribution,
+    ContinuousMatrixDistribution,
+    Beta, Chi,
+    cdf, pdf, entropy, insupport, mean, median, modes, kurtosis, skewness, std, var, moment
 
 export bidrand,    #Generate random bidiagonal matrix
        tridrand,   #Generate random tridiagonal matrix
        sprand,     #Generate random sparse matrix
        eigvalrand, #Generate random set of eigenvalues
        eigvaljpdf, #Eigenvalue joint probability density
-       pdf,
-       cdf
+       cumulant, freecumulant, cf, mgf,
+       cdf, pdf, entropy, insupport, mean, median, modes, kurtosis, skewness, std, var, moment
 
 typealias Dim2 Tuple{Int, Int} #Dimensions of a rectangular matrix
 
