@@ -2,9 +2,8 @@ module RandomMatrices
 import Distributions
 using Combinatorics,Compat
 
-import Distributions: ContinuousMatrixDistribution
+import Distributions: ContinuousMatrixDistribution, Chi
 
-import Base.rand
 
 #If the GNU Scientific Library is present, turn on additional functionality.
 _HAVE_GSL = try
@@ -13,6 +12,8 @@ _HAVE_GSL = try
 catch
    false
 end
+
+import Base: isinf, rand
 
 export bidrand,    #Generate random bidiagonal matrix
        tridrand,   #Generate random tridiagonal matrix

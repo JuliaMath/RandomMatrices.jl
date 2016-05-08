@@ -13,13 +13,11 @@
 # Alan Edelman, Per-Olof Persson and Brian D Sutton, "The fourfold way"
 # http://www-math.mit.edu/~edelman/homepage/papers/ffw.pdf
 
-import Distributions: Chisq
-import Base: isinf, rand
 export GaussianHermite, GaussianLaguerre, GaussianJacobi,
        Wigner, Wishart, MANOVA #Synonyms for Hermite, Laguerre and Jacobi
 
 #A convenience function to define a chi scalar random variable
-χ(df::Real) = √(rand(Chisq(df)))
+χ(df::Real) = rand(Chi(df))
 
 #####################
 # Hermite ensemble #
