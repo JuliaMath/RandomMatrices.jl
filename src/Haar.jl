@@ -31,8 +31,6 @@ function permutations_in_Sn(n::Integer)
 end
 
 
-if _HAVE_GSL
-
 function compose(P::Ptr{gsl_permutation}, Q::Ptr{gsl_permutation})
     #Compose the permutations
     n=convert(Int64, permutation_size(P))
@@ -65,8 +63,6 @@ end
 #Returns a vector of indices (starting from 1 in the Julia convention)
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
-
-end #_HAVE_GSL
 
 
 type Haar <: ContinuousMatrixDistribution
@@ -268,15 +264,11 @@ function expectation(X::Expr)
     eval(X)
 end
 
-if _HAVE_GSL
-
 #Computes the Weingarten function for permutations
 function WeingartenUnitary(P::Ptr{gsl_permutation})
     C = cycle_structure(P)
     WeingartenUnitary(C)
 end
-
-end #_HAVE_GSL
 
 #Computes the Weingarten function for partitions
 function WeingartenUnitary(P::partition)

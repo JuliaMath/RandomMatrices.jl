@@ -1,25 +1,19 @@
 module RandomMatrices
-import Distributions
-using Combinatorics,Compat
 
-import Distributions: ContinuousMatrixDistribution, Chi
-
-
-#If the GNU Scientific Library is present, turn on additional functionality.
-_HAVE_GSL = try
-  using GSL
-  true
-catch
-   false
-end
+using Combinatorics
+using Compat
+using GSL
+using ODE
 
 import Base: isinf, rand
+import Distributions: ContinuousMatrixDistribution, Chi, pdf
 
 export bidrand,    #Generate random bidiagonal matrix
        tridrand,   #Generate random tridiagonal matrix
        sprand,     #Generate random sparse matrix
        eigvalrand, #Generate random set of eigenvalues
-       eigvaljpdf  #Eigenvalue joint probability density
+       eigvaljpdf, #Eigenvalue joint probability density
+       pdf
 
 typealias Dim2 Tuple{Int, Int} #Dimensions of a rectangular matrix
 

@@ -66,19 +66,13 @@ std(X::Semicircle)=X.radius/2
 var(X::Semicircle)=std(X)^2
 
 # moment of distribution
-if _HAVE_GSL
-  function moment(X::Semicircle, order::Integer)
+function moment(X::Semicircle, order::Integer)
     a, r = X.mean, X.radius
     if X.mean != 0
-      a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
+        a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
     else
-      order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
+        order%2 ? (0.5*r)^(2n) * catalan(div(order,2)) : 0
     end
-  end
-else
-  function moment(X::Semicircle, order::Integer)
-    error("The moment of a semicircle distribution requires the GSL module to be loaded.")
-  end
 end
 
 # cumulant of distribution

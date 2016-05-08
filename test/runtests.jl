@@ -6,3 +6,6 @@ include("GaussianEnsembles.jl")
 include("FormalPowerSeries.jl")
 include("Haar.jl")
 include("StochasticProcess.jl")
+
+include("densities/TracyWidom.jl")
+
