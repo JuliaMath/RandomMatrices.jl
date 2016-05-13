@@ -204,7 +204,6 @@ function iekernel(q::Array{Float64,2},d,plan::Function)
 end
 
 
-<<<<<<< 16c414b28d81a04c589c8ec5e66aa724f4e110f0
 samplespectra(str::AbstractString,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
 
 
