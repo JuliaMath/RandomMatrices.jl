@@ -140,7 +140,7 @@ end
 
 #Reads in recurrence relationship and constructs OPs
 function InvariantEnsemble(str::AbstractString,V::Function,d,n::Integer)
-    file = Pkg.dir("RandomMatrices/data/CoefficientDatabase/" * str * "/" * string(n))
+    file = joinpath(dirname(@__FILE__), "../data/CoefficientDatabase/" * str * "/" * string(n))
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
     a=reshape((A[1,1:end-1]),size(A)[2]-1)
@@ -152,7 +152,7 @@ end
 
 # For constructing InvariantEnsembles that do not scale with n
 function InvariantEnsembleUnscaled(str::AbstractString,V::Function,d,n::Integer)
-    file = Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled/" * str * "/")
+    file = joinpath(dirname(@__FILE__), "../data/CoefficientDatabaseUnscaled/" * str * "/")
     μ0=readdlm(file * "norm.csv")[1]
     A=readdlm(file * "rc.csv",',')
     a=reshape((A[1,1:end-1]),size(A)[2]-1)
@@ -289,7 +289,7 @@ samplespectra(p::InvariantEnsemble)=samplespectra(p.basis,p.domain)
 
 
 function spectradatabase(str,n::Integer,m::Colon)
-  file = Pkg.dir("RandomMatrices/data/SpectraDatabase/" * str * "/" * string(n) * ".csv");
+  file = joinpath(dirname(@__FILE__), "../data/SpectraDatabase/" * str * "/" * string(n) * ".csv");
 
   if(filesize(file) == 0)
     []
@@ -299,13 +299,13 @@ function spectradatabase(str,n::Integer,m::Colon)
 end
 
 function spectradatabase(str,n::Integer,m::Integer)
-    if  filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabase")) == 0 ||
-        filesize(Pkg.dir("RandomMatrices/data/CoefficientDatabaseUnscaled")) == 0
+    if  filesize(joinpath(dirname(@__FILE__), "../data/CoefficientDatabase")) == 0 ||
+        filesize(joinpath(dirname(@__FILE__), "../data/CoefficientDatabaseUnscaled")) == 0
         error("No coefficient database found.  InvariantEnsembles package corrupted.")
     end
 
 
-    dir = Pkg.dir("RandomMatrices/data/SpectraDatabase")
+    dir = joinpath(dirname(@__FILE__), "../data/SpectraDatabase")
     if filesize(dir) == 0
         warn("Creating SpectraDatabase folder " * dir)
 
@@ -313,7 +313,7 @@ function spectradatabase(str,n::Integer,m::Integer)
     end
 
 
-    dir = Pkg.dir("RandomMatrices/data/SpectraDatabase/" * str)
+    dir = joinpath(dirname(@__FILE__), "../data/SpectraDatabase/" * str)
 
     if filesize(dir) == 0
         warn("Creating folder " * dir)
