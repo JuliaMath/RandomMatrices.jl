@@ -9,7 +9,7 @@ Hermitian matrix.
 The cdf of Tracy-Widom is given by
 
 ``
-F_2 (s) = lim_{n→∞} Pr(√2 n^{1/6} (λₙ - √(2n) ≤ s) 
+F_2 (s) = lim_{n→∞} Pr(√2 n^{1/6} (λₙ - √(2n) ≤ s)
 ``
 
 References:
@@ -76,13 +76,13 @@ end
 """
 Samples the largest eigenvalue of the n × n GUE matrix
 """
-function rand(d::TracyWidom, n::Integer)
+function rand(d::TracyWidom, n::Int)
     n > 1 || error("Cannot construct $n × $n matrix")
     if n < 100
         k = n
     else #Exploit the fact that the eigenvector is concentrated in the top left corner
 	k = round(Int, n-10*n^(1/3)-1)
-    end	
+    end
     a=randn(n-k+1)
     b=[χ(i) for i=(n-1):-1:k]
     v=eigmax(SymTridiagonal(a, b))

@@ -50,7 +50,7 @@ function legendrepolynomials(n)
   orthonormalpolynomials(1./sqrt(2),k->0,k->sqrt(k^2./(4k^2-1)),[-1.,1.],n)
 end
 function scaledhermitepolynomials(n)
-  orthonormalpolynomials(n^(1/4)/(1.π)^(1/4),k->0,k->sqrt((k)/(2n)),[-3.,3.],n)
+  orthonormalpolynomials(n^(1/4)/(1.0π)^(1/4),k->0,k->sqrt((k)/(2n)),[-3.,3.],n)
 end
 
 
@@ -179,11 +179,11 @@ function InvariantEnsemble(str::AbstractString,n::Integer)
         error("Legendre not implemented")
         #InvariantEnsembles(map(f->pad(f,2n),legendrepolynomials(n)))
     elseif(str == "CoshUnscaled")
-        InvariantEnsembleUnscaled("Cosh",x->cosh(x),[-2acosh(1.n),2acosh(1.n)],n)
+        InvariantEnsembleUnscaled("Cosh",x->cosh(x),[-2acosh(1.0n),2acosh(1.0n)],n)
     elseif(str == "EightUnscaled")
-        InvariantEnsembleUnscaled("Eight",x->x.^8,[-3.n^(1/8),3.n^(1/8)],n)
+        InvariantEnsembleUnscaled("Eight",x->x.^8,[-3.0n^(1/8),3.0n^(1/8)],n)
     elseif(str == "QuarticUnscaled")
-        InvariantEnsembleUnscaled("Quartic",x->x.^4,[-3.n^(1/4),3.n^(1/4)],n)
+        InvariantEnsembleUnscaled("Quartic",x->x.^4,[-3.0n^(1/4),3.0n^(1/4)],n)
     end
 end
 

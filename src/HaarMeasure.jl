@@ -65,18 +65,22 @@ end
 #Zyczkowski and Kus, Random unitary matrices, J. Phys. A: Math. Gen. 27,
 #4235–4245 (1994).
 
+
+if VERSION < v"0.5.0-dev"
+    macro blasfunc(x)
+       return :( $(BLAS.blasfunc(x) ))
+    end
+else
+    import Base.BLAS.@blasfunc
+end
+
+
 using Base.LinAlg: BlasInt
 for (s, elty) in (("dlarfg_", Float64),
                   ("zlarfg_", Complex128))
-
-    if Base.VERSION < v"0.5-"
-	blass = Base.blasfunc(s)
-    else
-	blass = eval(Base, :(@blasfunc($s)))
-    end
     @eval begin
         function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-	    ccall(($blass, Base.liblapack_name), Void,
+	    ccall((@blasfunc($s), LAPACK.liblapack), Void,
 		  (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
                   &n, α, x, &incx, τ)
         end
@@ -124,4 +128,3 @@ function randfast(W::Haar, n::Int)
         error("beta = $beta not implemented")
     end
 end
-
