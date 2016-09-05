@@ -66,12 +66,20 @@ end
 #4235–4245 (1994).
 
 ### Stewarts algorithm for n^2 orthogonal random matrix
-using Base.LinAlg: BlasInt
+if VERSION < v"0.5.0-dev"
+    macro blasfunc(x)
+       return :( $(BLAS.blasfunc(x) ))
+    end
+else
+    import Base.BLAS.@blasfunc
+end
+
+
 for (s, elty) in (("dlarfg_", Float64),
                   ("zlarfg_", Complex128))
     @eval begin
         function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-            ccall(($(Base.blasfunc(s)), Base.liblapack_name), Void,
+            ccall((@blasfunc($s), LAPACK.liblapack), Void,
                 (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
                 &n, α, x, &incx, τ)
         end
@@ -116,4 +124,3 @@ function randfast(W::Haar, n::Int)
         error("beta = $beta not implemented")
     end
 end
-
