@@ -34,7 +34,7 @@ function orthonormalpolynomials(μ0,α::Vector,β::Vector,d)
     n=length(α)+1
 
     p=Array(Fun{Chebyshev,Float64},n)
-    p[1] = Fun([μ0],d)
+    p[1] = Fun(d,[μ0])
     p[2] = multiplybyx(p[1])./β[1] - p[1].*α[1]./β[1]
     for k = 3:n
        p[k] =  multiplybyx(p[k-1])./β[k-1] - p[k-1].*α[k-1]./β[k-1] - p[k-2].*β[k-2]./β[k-1]
@@ -71,12 +71,20 @@ end
 
 ## Ensembles
 
-type InvariantEnsemble{D<:Interval}
+type InvariantEnsemble{D}
     basis::Array{Float64,2}         # the m x n array of the first n weighted OPs evaluated at m Chebyshev points
     domain::D                       # the sub domain  of the real line
+    InvariantEnsemble(b,d) = new(b,d)
 end
 
-InvariantEnsemble(basis,d::Vector)=InvariantEnsemble(basis,Interval(d))
+InvariantEnsemble(basis::Matrix,d::Domain) =
+    InvariantEnsemble{typeof(d)}(basis,d)
+
+InvariantEnsemble(basis::Matrix,d::Vector) =
+    InvariantEnsemble(basis,Interval(d[1],d[2]))
+
+InvariantEnsemble(basis,d::Vector) =
+    InvariantEnsemble(basis,Interval(d[1],d[2]))
 
 
 ## n, where the invariant ensemble is n x n
@@ -115,7 +123,7 @@ end
 function adaptiveie(w,μ0,α,β,d)
   for logn = 4:20
     m=2^logn + 1
-    pts=points(Interval(d),m)
+    pts=points(Interval(d[1],d[2]),m)
     pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
 
     wv=w(pts)
@@ -127,7 +135,7 @@ function adaptiveie(w,μ0,α,β,d)
 
         m=length(chop!(cfs,200*eps()))
 
-        pts=points(Interval(d),m)
+        pts=points(Interval(d[1],d[2]),m)
         pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
         wv=w(pts)
 
@@ -190,7 +198,7 @@ end
 
 ##  Construct the invariant ensemble kernel K_n(x,x)
 iekernel(q::Array{Float64,2},d)=iekernel(q,d,plan_chebyshevtransform(q[:,1]))
-function iekernel(q::Array{Float64,2},d,plan::Function)
+function iekernel(q::Array{Float64,2},d,plan)
     n=size(q)[1]
     m=size(q)[2]
     ret=zeros(n)
@@ -200,11 +208,11 @@ function iekernel(q::Array{Float64,2},d,plan::Function)
         end
     end
 
-  Fun(chebyshevtransform(ret,plan),d)
+  Fun(d,plan*ret)
 end
 
 
-samplespectra(str::AbstractString,n::Integer,m::Integer)=samplespectra(InvariantEnsemble(str,n),m)
+samplespectra(str::AbstractString,n::Integer,m::Integer) = samplespectra(InvariantEnsemble(str,n),m)
 
 
 # Sample eigenvalues of invariant ensemble, m times
@@ -237,7 +245,7 @@ end
 ## samplespectra is back end for eigvalrand
 samplespectra(q::Array{Float64,2},d)=samplespectra(q,d,plan_chebyshevtransform(q[:,1]),chebyshevpoints(size(q,1)))
 
-function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
+function samplespectra(q::Array{Float64,2},d,plan,pts)
     n = size(q,2)
     r=Array(Float64,n)
 
@@ -247,7 +255,7 @@ function samplespectra(q::Array{Float64,2},d,plan::Function,pts)
         r[k] = samplecdf(normalizedcumsum!(iekernel(q,d,plan).coefficients/m))
         f=Float64[bary(q[:,j],pts,r[k]) for j = 1:m]
         r[k] = fromcanonical(d,r[k])
-        Q=null(f')
+        Q=nullspace(f')
         q=q*Q
     end
 
@@ -273,7 +281,7 @@ function samplespectra{F<:Fun}(p::Array{F})
         r
     else
         f=map(q->q[r],p)
-        Q=null(f')'
+        Q=nullspace(f')'
         [r ;samplespectra(Q*p)]
     end
 end
