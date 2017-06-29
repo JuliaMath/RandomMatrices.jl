@@ -3,7 +3,7 @@ module RandomMatrices
 using Combinatorics
 using Compat
 using GSL
-using ODE
+using OrdinaryDiffEq
 
 import Base: isinf, rand
 import Distributions: ContinuousUnivariateDistribution,

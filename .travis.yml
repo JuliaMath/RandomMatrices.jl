@@ -6,7 +6,6 @@ addons:
 os:
     - linux
 julia:
-    - 0.4
     - 0.5
     - nightly
 sudo: false
@@ -17,4 +16,3 @@ notifications:
 #    - julia -e 'Pkg.clone(pwd()); Pkg.build("RandomMatrices"); Pkg.test("RandomMatrices"; coverage=true)'
 after_success:
     - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("RandomMatrices")); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
-
