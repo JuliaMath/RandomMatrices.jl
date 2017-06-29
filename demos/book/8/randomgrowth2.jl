@@ -1,6 +1,6 @@
 #randomgrowth2.jl
 using PyPlot
-using ODE
+using OrdinaryDiffEq
 
 function randomgrowth2()
     num_trials = 2000
@@ -32,16 +32,22 @@ function randomgrowth2()
         t0 = 4
         tn = -6
         dx = 0.005
-        deq = (t, y) -> [y[2]; t*y[1]+2*y[1]^3; y[4]; y[1]^2]
-        y0 = [airy(t0); airy(1,t0); 0; airy(t0)^2]      # boundary conditions
-        t, y = ode23(deq, y0, t0:-dx:tn)                # solve
-        F2 = Float64[exp(-y[i][3]) for i = 1:length(y)]                               # the distribution
-        f2 = gradient(F2, t)                            # the density
+        deq = function (t, y, dy)
+          dy[1] = y[2]
+          dy[2] = t*y[1]+2y[1]^3
+          dy[3] = y[4]
+          dy[4] = y[1]^2
+        end
+        y0 = big.([airy(t0); airy(1,t0); 0; airy(t0)^2]) # boundary conditions
+        prob = ODEProblem(deq,y0,(t0,tn))
+        sol = solve(prob,Vern8(), saveat=-dx, abstol=1e-12, reltol=1e-12) # solve
+        F2 = Float64[exp(-sol[i][3]) for i = 1:length(y)]  # the distribution
+        f2 = gradient(F2, t)                             # the density
 
         # add(p, Curve(t, f2, "color", "red", "linewidth", 3))
         # Winston.display(p)
         subplot(1,length(Ns),jj)
-        plot(t, f2, "r", linewidth = 3)
+        plot(sol.t, f2, "r", linewidth = 3)
         ylim(0, 0.6)
         println(mean(C))
     end

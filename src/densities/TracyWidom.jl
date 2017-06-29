@@ -27,7 +27,7 @@ immutable TracyWidom <: ContinuousUnivariateDistribution end
 Probability density function of the Tracy-Widom distribution
 
 Computes the Tracy-Widom distribution by directly solving the
-Painlevé II equation using the ode23 numerical integrator
+Painlevé II equation using the Vern8 numerical integrator
 
 # Arguments
 * `d::TracyWidom` or `Type{TracyWidom}`: an instance of `TracyWidom` or the type itself
@@ -49,7 +49,7 @@ pdf(d::Type{TracyWidom}, t::Real) = pdf(d(), t)
 Cumulative density function of the Tracy-Widom distribution
 
 Computes the Tracy-Widom distribution by directly solving the
-Painlevé II equation using the ode23 numerical integrator
+Painlevé II equation using the Vern8 numerical integrator
 
 See `pdf(::TracyWidom)` for a description of the arguments.
 """
@@ -62,7 +62,7 @@ end
 cdf(d::Type{TracyWidom}, t::Real) = cdf(d(), t)
 
 # An internal function which sets up the Painleve II differential equation and
-# runs it through the ode23 numerical integrator
+# runs it through the Vern8 numerical integrator
 function _solve_painleve_ii{S<:Real}(t0::S, t::S)
     function deq(t, y, dy)
         dy[1] = y[2]
