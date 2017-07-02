@@ -4,6 +4,7 @@ using Combinatorics
 using Compat
 using GSL
 using OrdinaryDiffEq
+using DiffEqBase # This line is only needed on v0.5, and comes free from OrdinaryDiffEq on v0.6
 
 import Base: isinf, rand
 import Distributions: ContinuousUnivariateDistribution,
