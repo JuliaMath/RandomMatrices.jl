@@ -7,7 +7,7 @@ using Base.Test
 @test cdf(TracyWidom, -10) == 0
 @test cdf(TracyWidom, 10) == 1
 
-if isdefined(:ODE) && isa(ODE, Module)
+if isdefined(:OrdinaryDiffEq) && isa(OrdinaryDiffEq, Module)
     t = rand()
     @test pdf(TracyWidom, t) > 0
     @test 0 < cdf(TracyWidom, t) < 1

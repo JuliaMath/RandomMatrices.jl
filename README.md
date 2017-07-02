@@ -3,7 +3,7 @@ RandomMatrices.jl
 
 Random matrix package for [Julia](http://julialang.org).
 
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.4.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.5.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
 [![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
 [![Coverage Status](https://coveralls.io/repos/jiahao/RandomMatrices.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jiahao/RandomMatrices.jl?branch=master)
 [![codecov.io](https://codecov.io/github/jiahao/RandomMatrices.jl/coverage.svg?branch=master)](https://codecov.io/github/jiahao/RandomMatrices.jl?branch=master)
