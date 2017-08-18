@@ -4,9 +4,10 @@ RandomMatrices.jl
 Random matrix package for [Julia](http://julialang.org).
 
 [![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.5.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
-[![Build Status](https://travis-ci.org/jiahao/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/jiahao/RandomMatrices.jl)
-[![Coverage Status](https://coveralls.io/repos/jiahao/RandomMatrices.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jiahao/RandomMatrices.jl?branch=master)
-[![codecov.io](https://codecov.io/github/jiahao/RandomMatrices.jl/coverage.svg?branch=master)](https://codecov.io/github/jiahao/RandomMatrices.jl?branch=master)
+[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.6.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
+[![Build Status](https://travis-ci.org/JuliaMath/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/JuliaMath/RandomMatrices.jl)
+[![Coverage Status](https://coveralls.io/repos/JuliaMath/RandomMatrices.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaMath/RandomMatrices.jl?branch=master)
+[![codecov.io](https://codecov.io/github/JuliaMath/RandomMatrices.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaMath/RandomMatrices.jl?branch=master)
 [![DOI](https://zenodo.org/badge/5087/jiahao/RandomMatrices.jl.svg)](https://zenodo.org/badge/latestdoi/5087/jiahao/RandomMatrices.jl)
 
 This extends the [Distributions](https://github.com/JuliaStats/Distributions.jl)
