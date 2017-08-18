@@ -66,13 +66,7 @@ end
 #4235–4245 (1994).
 
 
-if VERSION < v"0.5.0-dev"
-    macro blasfunc(x)
-       return :( $(BLAS.blasfunc(x) ))
-    end
-else
-    import Base.BLAS.@blasfunc
-end
+import Base.BLAS.@blasfunc
 
 
 using Base.LinAlg: BlasInt
