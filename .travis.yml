@@ -1,4 +1,5 @@
 language: julia
+sudo: false
 addons:
     apt:
         packages:
@@ -9,7 +10,9 @@ julia:
     - 0.5
     - 0.6
     - nightly
-sudo: false
+matrix:
+  allow_failures:
+    - julia: nightly
 notifications:
     email: false
 #script: # use the default script setting which is equivalent to the following
