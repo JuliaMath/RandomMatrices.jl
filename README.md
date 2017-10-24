@@ -3,7 +3,6 @@ RandomMatrices.jl
 
 Random matrix package for [Julia](http://julialang.org).
 
-[![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.5.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
 [![RandomMatrices](http://pkg.julialang.org/badges/RandomMatrices_0.6.svg)](http://pkg.julialang.org/?pkg=RandomMatrices)
 [![Build Status](https://travis-ci.org/JuliaMath/RandomMatrices.jl.png?branch=master)](https://travis-ci.org/JuliaMath/RandomMatrices.jl)
 [![Coverage Status](https://coveralls.io/repos/JuliaMath/RandomMatrices.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaMath/RandomMatrices.jl?branch=master)
