@@ -6,10 +6,10 @@ Wigner semicircle distribution
 By default, creates a standardized distribution
 with mean 0 and variance 1 (radius 2)
 """
-immutable Semicircle{T<:Real} <: ContinuousUnivariateDistribution
+struct Semicircle{T<:Real} <: ContinuousUnivariateDistribution
     mean::T
     radius::T
-    Semicircle(μ::T,r::T) = new(μ,r)
+    Semicircle{T}(μ::T,r::T) where T = new(μ,r)
 end
 Semicircle{T<:Real}(μ::T=0.0, r::T=2.0) = r > 0 ? Semicircle{T}(μ, r) :
     throw(ArgumentError("radius r must be positive, got $r"))

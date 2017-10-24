@@ -71,20 +71,20 @@ end
 
 ## Ensembles
 
-type InvariantEnsemble{D}
+mutable struct InvariantEnsemble{D}
     basis::Array{Float64,2}         # the m x n array of the first n weighted OPs evaluated at m Chebyshev points
     domain::D                       # the sub domain  of the real line
-    InvariantEnsemble(b,d) = new(b,d)
+    InvariantEnsemble{D}(b,d) where D = new(b,d)
 end
 
 InvariantEnsemble(basis::Matrix,d::Domain) =
     InvariantEnsemble{typeof(d)}(basis,d)
 
 InvariantEnsemble(basis::Matrix,d::Vector) =
-    InvariantEnsemble(basis,Interval(d[1],d[2]))
+    InvariantEnsemble(basis,Segment(d[1],d[2]))
 
 InvariantEnsemble(basis,d::Vector) =
-    InvariantEnsemble(basis,Interval(d[1],d[2]))
+    InvariantEnsemble(basis,Segment(d[1],d[2]))
 
 
 ## n, where the invariant ensemble is n x n
@@ -123,7 +123,7 @@ end
 function adaptiveie(w,μ0,α,β,d)
   for logn = 4:20
     m=2^logn + 1
-    pts=points(Interval(d[1],d[2]),m)
+    pts=points(Segment(d[1],d[2]),m)
     pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
 
     wv=w(pts)
@@ -135,7 +135,7 @@ function adaptiveie(w,μ0,α,β,d)
 
         m=length(chop!(cfs,200*eps()))
 
-        pts=points(Interval(d[1],d[2]),m)
+        pts=points(Segment(d[1],d[2]),m)
         pv=orthonormalpolynomialsvalues(μ0,α,β,pts)
         wv=w(pts)
 

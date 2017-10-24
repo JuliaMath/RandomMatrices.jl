@@ -20,7 +20,7 @@ References:
 Numerical routines adapted from Alan Edelman's course notes for MIT 18.338,
 Random Matrix Theory, 2016.
 """
-immutable TracyWidom <: ContinuousUnivariateDistribution end
+struct TracyWidom <: ContinuousUnivariateDistribution end
 
 
 """
@@ -70,9 +70,9 @@ function _solve_painleve_ii{S<:Real}(t0::S, t::S)
         dy[3] = y[4]
         dy[4] = y[1]^2
     end
-    a0 = airy(t0)
+    a0 = airyai(t0)
     T = typeof(big(a0))
-    y0=T[a0, airy(1, t0), 0, airy(t0)^2]    # Initial conditions
+    y0=T[a0, airyaiprime(t0), 0, airyai(t0)^2]    # Initial conditions
     prob = ODEProblem(deq,y0,(t0,t))
     solve(prob, Vern8(), abstol=1e-12, reltol=1e-12)         # Solve the ODE
 end

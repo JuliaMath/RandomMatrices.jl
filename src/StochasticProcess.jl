@@ -3,17 +3,17 @@
 import Base: start, next, done
 export AiryProcess, BrownianProcess, WhiteNoiseProcess, next!
 
-abstract StochasticProcess{T<:Real}
+abstract type StochasticProcess{T<:Real} end
 
-immutable WhiteNoiseProcess{T<:Real} <: StochasticProcess{T}
+struct WhiteNoiseProcess{T<:Real} <: StochasticProcess{T}
     dt::T
 end
 
-immutable BrownianProcess{T<:Real} <: StochasticProcess{T}
+struct BrownianProcess{T<:Real} <: StochasticProcess{T}
     dt::T
 end
 
-immutable AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
+struct AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
     dt::T
     beta::S
 end
@@ -67,5 +67,3 @@ function next{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
 
     (eigmax(S), S)
 end
-
-

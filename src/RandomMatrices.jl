@@ -1,7 +1,6 @@
 module RandomMatrices
 
 using Combinatorics
-using Compat
 using GSL
 using OrdinaryDiffEq
 using DiffEqBase # This line is only needed on v0.5, and comes free from OrdinaryDiffEq on v0.6
@@ -20,7 +19,7 @@ export bidrand,    #Generate random bidiagonal matrix
        cumulant, freecumulant, cf, mgf,
        cdf, pdf, entropy, insupport, mean, median, modes, kurtosis, skewness, std, var, moment
 
-typealias Dim2 Tuple{Int, Int} #Dimensions of a rectangular matrix
+const Dim2 = Tuple{Int, Int} #Dimensions of a rectangular matrix
 
 #Classical Gaussian matrix ensembles
 include("GaussianEnsembles.jl")

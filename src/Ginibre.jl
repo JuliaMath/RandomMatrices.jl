@@ -5,7 +5,7 @@ import Base.rand
 #This ensemble lives in GL(N, F), the set of all invertible N x N matrices
 #over the field F
 #For beta=1,2,4, F=R, C, H respectively
-immutable Ginibre <: ContinuousMatrixDistribution
+struct Ginibre <: ContinuousMatrixDistribution
    beta::Float64
    N::Integer
 end
@@ -32,7 +32,7 @@ function jpdf{z<:Complex}(Z::AbstractMatrix{z})
 end
 
 #Dyson Circular orthogonal, unitary and symplectic ensembles
-immutable CircularOrthogonal
+struct CircularOrthogonal
     N :: Int64
 end
 
@@ -41,13 +41,13 @@ function rand(M::CircularOrthogonal)
     U * U'
 end
 
-immutable CircularUnitary
+struct CircularUnitary
     N :: Int64
 end
 
 rand(M::CircularUnitary) = rand(Ginibre(2, M.N))
 
-immutable CircularSymplectic
+struct CircularSymplectic
     N :: Int64
 end
 

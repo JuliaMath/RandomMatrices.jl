@@ -32,20 +32,20 @@ Example of usage:
 
     β = 2 #β = 1, 2, 4 generates real, complex and quaternionic matrices respectively.
     d = Wigner{β} #same as GaussianHermite{β}
-    
+
     n = 20 #Generate square matrices of this size
 
     S = rand(d, n)       #Generate a 20x20 symmetric Wigner matrix
     T = tridrand(d, n)   #Generate the symmetric tridiagonal form
     v = eigvalrand(d, n) #Generate a sample of eigenvalues
 """
-immutable GaussianHermite{β} <: ContinuousMatrixDistribution end
+struct GaussianHermite{β} <: ContinuousMatrixDistribution end
 GaussianHermite(β) = GaussianHermite{β}()
 
 """
 Synonym for GaussianHermite{β}
 """
-typealias Wigner{β} GaussianHermite{β}
+const Wigner{β} = GaussianHermite{β}
 
 rand{β}(d::Type{Wigner{β}}, dims...) = rand(d(), dims...)
 
@@ -70,7 +70,7 @@ function rand(d::Wigner{4}, n::Int)
     return Hermitian((A + A') / normalization)
 end
 
-rand{β}(d::Wigner{β}, n::Int) = 
+rand{β}(d::Wigner{β}, n::Int) =
     throw(ValueError("Cannot sample random matrix of size $n x $n for β=$β"))
 
 function rand{β}(d::Wigner{β}, dims...)
@@ -85,7 +85,7 @@ end
 Generates a nxn symmetric tridiagonal Wigner matrix
 
 Unlike for `rand(Wigner{β}, n)`, which is restricted to β=1,2 or 4,
-`trirand(Wigner{β}, n)` will generate a 
+`trirand(Wigner{β}, n)` will generate a
 
 The β=∞ case is defined in Edelman, Persson and Sutton, 2012
 """
@@ -143,13 +143,13 @@ end
 # Laguerre ensemble #
 #####################
 
-type GaussianLaguerre <: ContinuousMatrixDistribution
+mutable struct GaussianLaguerre <: ContinuousMatrixDistribution
   beta::Real
   a::Real
 end
-typealias Wishart GaussianLaguerre
+const Wishart = GaussianLaguerre
 
- 
+
 #Generates a NxN Hermitian Wishart matrix
 #TODO Check - the eigenvalue distribution looks funky
 #TODO The appropriate matrix size should be calculated from a and one matrix dimension
@@ -215,13 +215,13 @@ end
 # Jacobi ensemble #
 ###################
 
-#Generates a NxN self-dual MANOVA matrix 
-type GaussianJacobi <: ContinuousMatrixDistribution
+#Generates a NxN self-dual MANOVA matrix
+mutable struct GaussianJacobi <: ContinuousMatrixDistribution
   beta::Real
   a::Real
   b::Real
 end
-typealias MANOVA  GaussianJacobi
+const MANOVA = GaussianJacobi
 
 function rand(d::GaussianJacobi, m::Integer)
   w1 = Wishart(m, int(2.0*d.a/d.beta), d.beta)
@@ -267,7 +267,7 @@ function sprand(d::GaussianJacobi, n::Integer, a::Real, b::Real)
   for i=1:n
     CoordI[i], CoordJ[i] = i, i
     Values[i] = i==1 ? c[n] : c[n+1-i] * sp[n+1-i]
-  end    
+  end
   for i=1:n
     CoordI[n+i], CoordJ[n+i] = i, n+i
     Values[n+i] = i==n ? s[1] : s[n+1-i] * sp[n-i]
@@ -297,7 +297,7 @@ function sprand(d::GaussianJacobi, n::Integer, a::Real, b::Real)
     CoordI[7n-3+i], CoordJ[7n-3+i] = n+i,i+1
     Values[7n-3+i] = -s[n-i]*cp[n-i]
   end
-  
+
   return sparse(CoordI, CoordJ, Values)
 end
 
@@ -307,7 +307,7 @@ function eigvalrand(d::GaussianJacobi, n::Integer)
   c, s, cp, sp = SampleCSValues(n, d.a, d.b, d.beta)
   dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
   ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
-  
+
   ##TODO: understand why dv and ev are returned as Array{Any,1}
   M = Bidiagonal(convert(Array{Float64,1},dv), convert(Array{Float64,1},ev), false)
   return svdvals(M)
@@ -339,4 +339,3 @@ function eigvaljpdf{Eigenvalue<:Number}(d::GaussianJacobi, lambda::Vector{Eigenv
 
   return c * VandermondeDeterminant(lambda, beta) * Prod * exp(-Energy)
 end
-

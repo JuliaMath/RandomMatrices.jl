@@ -2,7 +2,7 @@ export permutations_in_Sn, compose, cycle_structure, data, part, #Functions work
     partition, Haar, expectation, WeingartenUnitary
 
 
-typealias partition Vector{Int}
+const partition = Vector{Int}
 #Functions working with partitions and permutations
 # TODO Migrate these functions to Catalan
 
@@ -24,7 +24,7 @@ end
 
 function permutations_in_Sn(n::Integer)
     P = permutation_calloc(n)
-    while true 
+    while true
         produce(P)
         try permutation_next(P) catch break end
     end
@@ -65,7 +65,7 @@ data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
 
-type Haar <: ContinuousMatrixDistribution
+mutable struct Haar <: ContinuousMatrixDistribution
     beta::Real
 end
 
@@ -88,10 +88,10 @@ function expectation(X::Expr)
     if X.head != :call
         error(string("Unexpected type of expression: ", X.head))
     end
-    
+
     n = length(X.args) - 1
     if n < 1 return eval(X) end #nothing to do Haar-wise
-    
+
     if X.args[1] != :*
         error("Unexpected expression, only products supported")
     end
@@ -144,7 +144,7 @@ function expectation(X::Expr)
             sigma_inv=permutation_inverse(sigma)
             #Compose the permutations
             perm=compose(sigma_inv, tau)
-            
+
             #Compute cycle structure, i.e. lengths of each cycle in the cycle
             #factorization of the permutatation
             cyclestruct = cycle_structure(perm)
@@ -245,7 +245,7 @@ function expectation(X::Expr)
                 ExprBlob, start_idx, end_idx = ExprChunk
                 print(ExprChunk, " => ")
                 if start_idx == end_idx #Have a cycle; this is a trace
-                    ex= length(ExprBlob)==1 ? :(trace($(ExprBlob[1]))) : 
+                    ex= length(ExprBlob)==1 ? :(trace($(ExprBlob[1]))) :
                         Expr(:call, :trace, Expr(:call, :*, ExprBlob...))
                 else #Not a cycle, regular chain of multiplications
                     ex= length(ExprBlob)==1 ? ExprBlob[1] :
@@ -288,4 +288,3 @@ function WeingartenUnitary(P::partition)
     end
     thesum
 end
-

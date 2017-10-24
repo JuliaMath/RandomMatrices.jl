@@ -17,10 +17,10 @@ export FormalPowerSeries, fps, tovector, trim, isunit, isnonunit,
 #############################
 
 # Definition [H, p.9] - we limit this to finitely many coefficients
-type FormalPowerSeries{Coefficients}
+mutable struct FormalPowerSeries{Coefficients}
   c :: Dict{BigInt, Coefficients}
-  FormalPowerSeries{Coefficients}(c::Dict{BigInt, Coefficients}) = new(c)
-  function FormalPowerSeries{Coefficients}(v::Vector{Coefficients})
+  FormalPowerSeries{Coefficients}(c::Dict{BigInt, Coefficients}) where Coefficients = new(c)
+  function FormalPowerSeries{Coefficients}(v::Vector{Coefficients}) where Coefficients
     c=Dict{BigInt, Coefficients}()
     for i in eachindex(v)
       if v[i] != 0
@@ -30,6 +30,9 @@ type FormalPowerSeries{Coefficients}
     FormalPowerSeries{Coefficients}(c)
   end
 end
+
+FormalPowerSeries(v::Vector{T}) where T = FormalPowerSeries{T}(v)
+
 #Convenient abbreviation for floats
 fps = FormalPowerSeries{Float64}
 
@@ -138,7 +141,8 @@ function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
 end
 
 #Hadamard product [H, p.10] - the elementwise product
-.*{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) = HadamardProduct(P, Q)
+broadcast(::typeof(*), P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where T =
+  HadamardProduct(P, Q)
 function HadamardProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   c = Dict{BigInt, T}()
   for (k,v) in P.c
@@ -193,7 +197,7 @@ end
 #TODO implement the FFT-based algorithm of one of the following
 #  doi:10.1109/TAC.1984.1103499
 #  https://cs.uwaterloo.ca/~glabahn/Papers/tamir-george-1.pdf
-function reciprocal{T}(P::FormalPowerSeries{T}, n::Integer)
+function reciprocal(P::FormalPowerSeries, n::Integer)
   n<0 && error(sprintf("Invalid inverse truncation length %d requested", n))
 
   a = tovector(P, 0:n-1) #Extract original coefficients in vector
@@ -205,11 +209,11 @@ function reciprocal{T}(P::FormalPowerSeries{T}, n::Integer)
   for k=2:n
     b[k] = -inv_a1 * sum([b[k+1-i] * a[i] for i=2:k])
   end
-  FormalPowerSeries{T}(b)
+  FormalPowerSeries(b)
 end
 
 #Derivative of fps [H. Sec.1.4, p.18]
-function derivative{T}(P::FormalPowerSeries{T})
+function derivative(P::FormalPowerSeries{T}) where T
     c = Dict{BigInt, T}()
     for (k,v) in P.c
         if k != 0 && v != 0
@@ -220,7 +224,7 @@ function derivative{T}(P::FormalPowerSeries{T})
 end
 
 #[H, Sec.1.4, p.18]
-function isconstant{T}(P::FormalPowerSeries{T})
+function isconstant(P::FormalPowerSeries)
   for (k,v) in P.c
     if k!=0 && v!=0
       return false
@@ -232,7 +236,7 @@ end
 
 
 # Power of fps [H, Sec.1.5, p.35]
-function ^{T}(P::FormalPowerSeries{T}, n :: Integer)
+function ^(P::FormalPowerSeries{T}, n::Integer) where T
     if n == 0
         return FormalPowerSeries{T}([one(T)])
     elseif n > 1
@@ -293,10 +297,10 @@ inv(P::FormalPowerSeries, n::Integer) = reversion(P, n)
 # [H., Sec. 1.8, p. 51]       #
 ###############################
 
-type FormalLaurentSeries{Coefficients}
+mutable struct FormalLaurentSeries{Coefficients}
   c :: Dict{BigInt, Coefficients}
-  FormalLaurentSeries{Coefficients}(c::Dict{BigInt, Coefficients}) = new(c)
-  function FormalLaurentSeries{Coefficients}(v::Vector{Coefficients})
+  FormalLaurentSeries{Coefficients}(c::Dict{BigInt, Coefficients}) where Coefficients = new(c)
+  function FormalLaurentSeries{Coefficients}(v::Vector{Coefficients}) where Coefficients
     c = new(c)
     for i=1:length(v)
       c[i] = v[i]
