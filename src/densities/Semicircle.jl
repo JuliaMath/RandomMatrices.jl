@@ -19,7 +19,7 @@ Semicircle{T<:Real}(μ::T=0.0, r::T=2.0) = r > 0 ? Semicircle{T}(μ, r) :
 
 # cumulative distribution function
 function cdf{T<:Real}(d::Semicircle{T}, x::T)
-    r, a = d.mean, d.radius
+    a, r = d.mean, d.radius
     if insupport(d, x)
         return 0.5 + (x-a)/(π*r^2) * √(r^2 - (x-a)^2) + asin((x-a)/r)/π
     elseif x ≥ a
@@ -31,7 +31,7 @@ end
 
 # probability density function
 function pdf{T<:Real}(d::Semicircle{T}, x::T)
-    r, a = d.mean, d.radius
+    a, r = d.mean, d.radius
     if insupport(d, x)
         return 2/(π*r^2) * √(r^2 - (x-a)^2)
     else
