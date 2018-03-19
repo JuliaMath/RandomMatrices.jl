@@ -51,8 +51,8 @@ rand{β}(d::Type{Wigner{β}}, dims...) = rand(d(), dims...)
 
 function rand(d::Wigner{1}, n::Int)
     A = randn(n, n)
-    normalization = √(2*n)
-    return Symmetric((A + A') / normalization)
+    normalization = 1 / √(2n)
+    return Symmetric((A + A') / 2 * normalization)
 end
 
 function rand(d::Wigner{2}, n::Int)
@@ -90,16 +90,19 @@ Unlike for `rand(Wigner{β}, n)`, which is restricted to β=1,2 or 4,
 The β=∞ case is defined in Edelman, Persson and Sutton, 2012
 """
 function tridrand{β}(d::Wigner{β}, n::Int)
+    χ(df::Real) = rand(Distributions.Chi(df))
     if β≤0
-	throw(ValueError("β = $β cannot be nonpositive"))
+        throw(ValueError("β = $β cannot be nonpositive"))
     elseif isinf(β)
-	return tridrand(Wigner{Inf}, n)
+        return tridrand(Wigner{Inf}, n)
     else
-        Hd = randn(n)/√(n)
-        He = [χ(β*i)/√(2*n) for i=n-1:-1:1]
-        return SymTridiagonal(Hd, He)
+        normalization = 1 / √(2n)
+        Hd = rand(Distributions.Normal(0,2), n)./√2
+        He = [χ(β*i)/√2 for i=n-1:-1:1]
+        return normalization * SymTridiagonal(Hd, He)
     end
 end
+
 function tridrand{β}(d::Wigner{β}, dims...)
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
