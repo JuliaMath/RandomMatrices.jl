@@ -34,7 +34,7 @@ Painlevé II equation using the Vern8 numerical integrator
 * `t::Real`: The point at which to evaluate the pdf
 * `t0::Real = -8.0`: The point at which to start integrating
 """
-function pdf{S<:Real}(d::TracyWidom, t::S, t0::S = convert(S, -8.0))
+function pdf(d::TracyWidom, t::S, t0::S = convert(S, -8.0)) where {S<:Real}
     t≤t0 && return 0.0
     t≥5  && return 0.0
 

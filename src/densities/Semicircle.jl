@@ -11,14 +11,19 @@ struct Semicircle{T<:Real} <: ContinuousUnivariateDistribution
     radius::T
     Semicircle{T}(μ::T,r::T) where T = new(μ,r)
 end
-Semicircle{T<:Real}(μ::T=0.0, r::T=2.0) = r > 0 ? Semicircle{T}(μ, r) :
+Semicircle(μ::T=0.0, r::T=2.0) where {T<:Real} = r > 0 ? Semicircle{T}(μ, r) :
     throw(ArgumentError("radius r must be positive, got $r"))
+    
+Semicircle{T}(d::Semicircle) where T = Semicircle{T}(convert(T, d.mean), convert(T, d.radius))
+convert(::Type{Semicircle{T}}, d::Semicircle{T}) where T = d
+convert(::Type{Semicircle}, d::Semicircle) = d
+convert(::Type{Semicircle{T}}, d::Semicircle) where T = Semicircle{T}(convert(T, d.mean), convert(T, d.radius))
 
 # Distribution function methods
 ###############################
 
 # cumulative distribution function
-function cdf{T<:Real}(d::Semicircle{T}, x::T)
+function cdf(d::Semicircle{T}, x::T) where {T<:Real}
     a, r = d.mean, d.radius
     if insupport(d, x)
         return 0.5 + (x-a)/(π*r^2) * √(r^2 - (x-a)^2) + asin((x-a)/r)/π
@@ -30,7 +35,7 @@ function cdf{T<:Real}(d::Semicircle{T}, x::T)
 end
 
 # probability density function
-function pdf{T<:Real}(d::Semicircle{T}, x::T)
+function pdf(d::Semicircle{T}, x::T) where {T<:Real}
     a, r = d.mean, d.radius
     if insupport(d, x)
         return 2/(π*r^2) * √(r^2 - (x-a)^2)
@@ -40,7 +45,24 @@ function pdf{T<:Real}(d::Semicircle{T}, x::T)
 end
 
 # predicate is x in the support of the distribution?
-insupport{T<:Real}(d::Semicircle{T}, x::T)=abs(x)<d.radius
+insupport{T<:Real}(d::Semicircle{T}, x::T) = abs(x-d.mean) < d.radius
+
+function cdf(X::Semicircle{T}, x::V) where {T<:Real,V<:Real}
+	TV = promote_type(T,V)
+	cdf(convert(Semicircle{TV},X), convert(TV,x))
+end
+
+# probability density function
+function pdf(X::Semicircle{T}, x::V) where {T<:Real,V<:Real}
+	TV = promote_type(T,V)
+	pdf(convert(Semicircle{TV},X), convert(TV,x))
+end
+
+# predicate is x in the support of the distribution?
+function insupport(X::Semicircle{T}, x::V) where {T<:Real,V<:Real}
+	TV = promote_type(T,V)
+	insupport(convert(Semicircle{TV},X), convert(TV,x))
+end
 
 #Entropy methods
 ################
@@ -73,7 +95,7 @@ std(X::Semicircle)=X.radius/2
 var(X::Semicircle)=std(X)^2
 
 # moment of distribution
-function moment{T<:Real}(X::Semicircle{T}, order::Integer)
+function moment(X::Semicircle{T}, order::Integer) where {T<:Real}
     a, r = X.mean, X.radius
     if X.mean != 0
         return a^n*hypergeom([(1-n)/2, -n/2], 2, (r/a)^2)
@@ -85,7 +107,7 @@ function moment{T<:Real}(X::Semicircle{T}, order::Integer)
 end
 
 # cumulant of distribution
-function cumulant{T<:Real}(d::Semicircle{T}, order::Integer)
+function cumulant(d::Semicircle{T}, order::Integer) where {T<:Real}
     if d.mean != 0
         throw(ArgumentError("Non-central Semicircle not supported"))
     end
@@ -100,7 +122,7 @@ function cumulant{T<:Real}(d::Semicircle{T}, order::Integer)
 end
 
 # free cumulant of distribution
-function freecumulant{T<:Real}(d::Semicircle{T}, order::Int)
+function freecumulant(d::Semicircle{T}, order::Int) where {T<:Real}
     if order == 0
         return one(T)
     elseif order == 1
