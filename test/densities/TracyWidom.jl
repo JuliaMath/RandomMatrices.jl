@@ -1,5 +1,5 @@
 using RandomMatrices
-using Base.Test
+using Compat.Test
 
 #Test far outside support
 #Tracy-Widom has support on all x>0, but the integration won't pick it up
