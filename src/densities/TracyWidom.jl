@@ -64,7 +64,7 @@ cdf(d::Type{TracyWidom}, t::Real) = cdf(d(), t)
 # An internal function which sets up the Painleve II differential equation and
 # runs it through the Vern8 numerical integrator
 function _solve_painleve_ii{S<:Real}(t0::S, t::S)
-    function deq(dy, y, p, t)
+    deq = function (dy, y, p, t)
         dy[1] = y[2]
         dy[2] = t*y[1]+2y[1]^3
         dy[3] = y[4]
