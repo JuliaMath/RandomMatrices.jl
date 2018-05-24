@@ -27,7 +27,7 @@ struct TracyWidom <: ContinuousUnivariateDistribution end
 
 
 """
-Cumulative density function of the Tracy-Widom distribution
+Cumulative density function of the Tracy-Widom distribution.
 
 Computes the Tracy-Widom distribution by Bornemann's method of evaluating
 a finite dimensional approximation to the Fredholm determinant using quadrature.
