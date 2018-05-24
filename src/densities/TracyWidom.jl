@@ -60,7 +60,7 @@ function cdf{T<:Real}(d::Type{TracyWidom}, s_vals::AbstractArray{T}; beta::Integ
     cdf(d(), s_vals, beta=beta, num_points=num_points)
 end
 
-function _TWcdf{T<:Real}(s::T, beta::Integer, quad::Tuple{Array{T,1},Array{T,1}})
+function _TWcdf{T<:Real}(s::T, beta::Integer, quad::Tuple{Array{Float64,1},Array{Float64,1}})
     if beta == 2
         kernel = ((ξ,η) -> _K2tilde(ξ,η,s))
         return _fredholm_det(kernel, quad)
