@@ -37,7 +37,7 @@ doi.org/10.1090/S0025-5718-09-02280-7
 # Arguments
 * `d::TracyWidom` or `Type{TracyWidom}`: an instance of `TracyWidom` or the type itself
 * `s::Real`: The point at which to evaluate the cdf
-* `beta::Integer = 2`: The Dyson index defining the distribution. Takes values 1, 2, or 4.
+* `beta::Integer = 2`: The Dyson index defining the distribution. Takes values 1, 2, or 4
 * `num_points::Integer = 25`: The number of points in the quadrature
 """
 function cdf{T<:Real}(d::TracyWidom, s::T; beta::Integer=2, num_points::Integer=25)
