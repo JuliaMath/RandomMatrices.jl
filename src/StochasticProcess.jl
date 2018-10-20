@@ -1,6 +1,6 @@
 #Matrices related to stochastic processes
 
-import Base: start, next, done
+import Base: iterate
 export AiryProcess, BrownianProcess, WhiteNoiseProcess, next!
 
 abstract type StochasticProcess{T<:Real} end
@@ -18,52 +18,49 @@ struct AiryProcess{S<:Real, T<:Real} <: StochasticProcess{T}
     beta::S
 end
 
-done{T}(p::StochasticProcess{T}, x...) = false #Processes can always go on forever
+done(p::StochasticProcess{T}, x...) where {T} = false #Processes can always go on forever
 
 #######################
 # White noise process #
 #######################
 
-start{T}(p::WhiteNoiseProcess{T}) = nothing
-next{T}(p::WhiteNoiseProcess{T}, x::Void=nothing) = (randn()*sqrt(p.dt), nothing)
+iterate(p::WhiteNoiseProcess, state=()) = (randn()*sqrt(p.dt), ())
 
 ####################
 # Brownian process #
 ####################
 
-start{T}(p::BrownianProcess{T}) = zero(T)
-function next{T}(p::BrownianProcess{T}, x::T)
-    newx = x + randn()*sqrt(p.dt)
-    newx, newx
+function iterate(p::BrownianProcess{T}, state=zero(T)) where {T}
+    newx = state + randn()*sqrt(p.dt)
+    return newx, newx
 end
 
 ################
 # Airy process #
 ################
-start{T}(p::AiryProcess{T}) = SymTridiagonal(T[-(2/p.dt^2)], T[])
 
 """
 Like next, but update only the state of the AiryProcess
 
 Skip the eigenvalue computation, which gets expensive
 """
-function next!{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
+function next!(p::AiryProcess{T}, S::SymTridiagonal{T}=SymTridiagonal(T[-(2/p.dt^2)], T[])) where {T} # TODO maybe change this to iterate!
     t = (size(S, 1)-1)*p.dt
 
-    #Discretized Airy operator plus diagonal noise
+    #Discredited Airy operator plus diagonal noise
     x = inv(p.dt^2)
     push!(S.dv, -2x - t + 2/sqrt(p.dt*p.beta)*randn())
     push!(S.ev, x)
 
-    S
+    return S
 end
-function next{T}(p::AiryProcess{T}, S::SymTridiagonal{T})
+function iterate(p::AiryProcess{T}, S::SymTridiagonal{T}= SymTridiagonal(T[-(2/p.dt^2)], T[])) where {T}
     t = (size(S, 1)-1)*p.dt
 
-    #Discretized Airy operator plus diagonal noise
+    #Discredited Airy operator plus diagonal noise
     x = inv(p.dt^2)
     push!(S.dv, -2x - t + 2/sqrt(p.dt*p.beta)*randn())
     push!(S.ev, x)
 
-    (eigmax(S), S)
+    return (eigmax(S), S)
 end

@@ -28,25 +28,25 @@ function rand(W::Haar, n::Int, doCorrection::Int=1)
         q
     elseif doCorrection==1
         if beta==1
-            L = sign(rand(n).-0.5)
+            L = sign.(rand(n).-0.5)
         elseif beta==2
-            L = exp(im*rand(n)*2pi)
+            L = exp.(im*rand(n)*2pi)
         elseif beta==4
-            L = exp(im*rand(2n)*2pi)
+            L = exp.(im*rand(2n)*2pi)
         else
             error(string("beta = ",beta, " not implemented."))
         end
-        q*diagm(L)
+        q*diagm(0 => L)
     elseif doCorrection==2
         if beta==1
-            L=sign(diag(r))
+            L=sign.(diag(r))
         elseif (beta==2 || beta==4)
             L=diag(r)
-            L=L./abs(L)
+            L=L./abs.(L)
         else
             error(string("beta = ",beta, " not implemented."))
         end
-        q*diagm(L)
+        q*diagm(0 => L)
     end
 end
 
@@ -66,17 +66,17 @@ end
 #4235–4245 (1994).
 
 
-import Base.BLAS.@blasfunc
+import LinearAlgebra.BLAS: @blasfunc
 
 
-using Base.LinAlg: BlasInt
+using LinearAlgebra: BlasInt
 for (s, elty) in (("dlarfg_", Float64),
-                  ("zlarfg_", Complex128))
+                  ("zlarfg_", ComplexF64))
     @eval begin
         function larfg!(n::Int, α::Ptr{$elty}, x::Ptr{$elty}, incx::Int, τ::Ptr{$elty})
-	    ccall((@blasfunc($s), LAPACK.liblapack), Void,
+	    ccall((@blasfunc($s), LAPACK.liblapack), Nothing,
 		  (Ptr{BlasInt}, Ptr{$elty}, Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}),
-                  &n, α, x, &incx, τ)
+                  Ref(n), α, x, Ref(incx), τ)
         end
     end
 end
@@ -85,7 +85,7 @@ end
 Stewarts algorithm for n^2 orthogonal random matrix
 """
 function Stewart(::Type{Float64}, n)
-    τ = Array(Float64, n)
+    τ = Array{Float64}(undef, n)
     H = randn(n, n)
 
     pτ = pointer(τ)
@@ -95,12 +95,12 @@ function Stewart(::Type{Float64}, n)
     for i = 0:n-2
         larfg!(n - i, pβ + (n + 1)*8i, pH + (n + 1)*8i, 1, pτ + 8i)
     end
-    Base.LinAlg.QRPackedQ(H,τ)
+    LinearAlgebra.QRPackedQ(H,τ)
 end
 
-function Stewart(::Type{Complex128}, n)
-    τ = Array(Complex128, n)
-    H = complex(randn(n, n), randn(n,n))
+function Stewart(::Type{ComplexF64}, n)
+    τ = Array{ComplexF64}(undef, n)
+    H = complex.(randn(n, n), randn(n,n))
 
     pτ = pointer(τ)
     pβ = pointer(H)
@@ -109,7 +109,7 @@ function Stewart(::Type{Complex128}, n)
     for i = 0:n-2
         larfg!(n - i, pβ + (n + 1)*16i, pH + (n + 1)*16i, 1, pτ + 16i)
     end
-    Base.LinAlg.QRPackedQ(H,τ)
+    LinearAlgebra.QRPackedQ(H,τ)
 end
 
 export randfast
@@ -117,7 +117,7 @@ function randfast(W::Haar, n::Int)
     if W.beta==1
         Stewart(Float64, n)
     elseif W.beta==2
-        Stewart(Complex128, n)
+        Stewart(ComplexF64, n)
     else
         error("beta = $beta not implemented")
     end

@@ -10,7 +10,7 @@ export hist_eig
 # of the determinant is stored.
 #
 #For general matrices, this is slower than hist(eigvals(M), bins) and is NOT recommended
-function hist_eig{GridPoint <: Number}(M::AbstractMatrix, bins::Vector{GridPoint})
+function hist_eig(M::AbstractMatrix, bins::Vector{GridPoint}) where {GridPoint <: Number}
   n = size(M)[1]
   NumBins = length(bins)
   histogram = zeros(NumBins)
@@ -38,7 +38,7 @@ end
 #   Cy P. Chan, "Sturm Sequences and the Eigenvalue Distribution of
 #   the Beta-Hermite Random Matrix Ensemble", M.Sc. thesis (MIT), 2007
 #
-function hist_eig{GridPoint <: Number}(M::SymTridiagonal, bins::Vector{GridPoint})
+function hist_eig(M::SymTridiagonal, bins::Vector{GridPoint}) where {GridPoint <: Number}
   n = size(M)[1]
   NumBins = length(bins)
   histogram = zeros(NumBins)

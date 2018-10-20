@@ -1,5 +1,7 @@
 using RandomMatrices
-using Base.Test
+using Test
+
+@testset "Semicircle" begin
 
 let
     d = Semicircle()
@@ -27,4 +29,6 @@ let
     x = rand(d)
     @test insupport(d, x)
 end
+
+end # testset
 

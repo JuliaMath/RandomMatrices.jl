@@ -21,7 +21,7 @@
 
 
 module InvariantEnsembles
-    using ApproxFun, RandomMatrices, Compat
+    using RandomMatrices, RandomMatrices.ApproxFun
 
 export InvariantEnsemble
 
@@ -47,7 +47,7 @@ function orthonormalpolynomials(μ0,α::Function,β::Function,d,n)
 end
 
 function legendrepolynomials(n)
-  orthonormalpolynomials(1./sqrt(2),k->0,k->sqrt(k^2./(4k^2-1)),[-1.,1.],n)
+  orthonormalpolynomials(1 ./ sqrt(2), k->0, k->sqrt(k^2 ./ (4k^2-1)), [-1.,1.], n)
 end
 function scaledhermitepolynomials(n)
   orthonormalpolynomials(n^(1/4)/(1.0π)^(1/4),k->0,k->sqrt((k)/(2n)),[-3.,3.],n)
@@ -95,7 +95,7 @@ Base.size(ie::InvariantEnsemble,n)=size(ie.basis,2)
 
 #Takes in list of OPs, constructs phis
 # can be unstable for large n
-function InvariantEnsemble{F<:Fun}(p::Array{F},V::Function,d,n::Integer)
+function InvariantEnsemble(p::Array{F},V::Function,d,n::Integer) where {F<:Fun}
     error("Reimplement with matrix")
 
 #     wsq=IFun(x->exp(-n/2.*V(x)),d)
@@ -128,7 +128,7 @@ function adaptiveie(w,μ0,α,β,d)
 
     wv=w(pts)
 
-    cfs=chebyshevtransform(pv[:,end].^2.*wv)
+    cfs=chebyshevtransform(pv[:,end] .^2 .* wv)
 
     if maximum(abs(cfs[end-8:end])) < 200*eps()
         ## chop to minimize oversample
@@ -265,8 +265,8 @@ function samplespectra(q::Array{Float64,2},d,plan,pts)
 end
 
 
-function iekernel{F<:Fun}(p::Array{F})
-    ret = 0.*p[1]
+function iekernel(p::Array{F}) where {F<:Fun}
+    ret = 0 .* p[1]
     for i = 1:length(p)
         ret += fasttimes(p[i],p[i])
     end
@@ -274,7 +274,7 @@ function iekernel{F<:Fun}(p::Array{F})
     ret
 end
 
-function samplespectra{F<:Fun}(p::Array{F})
+function samplespectra(p::Array{F}) where {F<:Fun}
     n = length(p)
     r=sample(iekernel(p)/n)
     if n==1

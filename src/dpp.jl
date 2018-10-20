@@ -14,7 +14,7 @@ Output:
 
 References:
 
-    Algorithm 18 of \cite{HKPV05}, as described in Algorithm 1 of \cite{KT12}.
+    Algorithm 18 of \\cite{HKPV05}, as described in Algorithm 1 of \\cite{KT12}.
 
     @article{HKPV05,
         author = {Hough, J Ben and Krishnapur, Manjunath and Peres, Yuval and Vir\'{a}g, B\'{a}lint},
@@ -43,7 +43,7 @@ References:
 
     TODO Check loss of orthogonality - a tip from Zelda Mariet
 """
-function rand{S<:Real,T}(L::Base.LinAlg.Eigen{S,T})
+function rand(L::LinearAlgebra.Eigen{S,T}) where {S<:Real,T}
     N = length(L.values)
     J = Int[]
     for n=1:N
@@ -85,5 +85,5 @@ function rand{S<:Real,T}(L::Base.LinAlg.Eigen{S,T})
         V = full(qrfact!(V)[:Q])[:, 1:nV-1]
         nV = size(V, 2)
     end
-    Y
+    return Y
 end

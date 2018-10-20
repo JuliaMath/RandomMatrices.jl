@@ -1,5 +1,5 @@
 export permutations_in_Sn, compose, cycle_structure, data, part, #Functions working with partitions and permutations
-    partition, Haar, expectation, WeingartenUnitary
+    partition, Haar, expectation, WeingartenUnitary, Stewart
 
 
 const partition = Vector{Int}
@@ -26,7 +26,7 @@ function permutations_in_Sn(n::Integer)
     P = permutation_calloc(n)
     while true
         produce(P)
-        try permutation_next(P) catch break end
+        try permutation_next(P) catch; break end
     end
 end
 
@@ -101,12 +101,12 @@ function expectation(X::Expr)
     Qidx=[] #Indices for Haar matrices
     Qpidx=[] #Indices for ctranspose of Haar matrices
     Others=[]
-    MyQ=None
+    MyQ=Nothing
     for i=1:n
         thingy=X.args[i+1]
         if isa(thingy, Symbol)
             if isa(eval(thingy), Haar)
-                if MyQ==None MyQ=thingy end
+                if MyQ==Nothing MyQ=thingy end
                 if MyQ == thingy
                     Qidx=[Qidx; i]
                 else

@@ -45,7 +45,7 @@ function pdf(d::Semicircle{T}, x::T) where {T<:Real}
 end
 
 # predicate is x in the support of the distribution?
-insupport{T<:Real}(d::Semicircle{T}, x::T) = abs(x-d.mean) < d.radius
+insupport(d::Semicircle{T}, x::T) where {T<:Real} = abs(x-d.mean) < d.radius
 
 function cdf(X::Semicircle{T}, x::V) where {T<:Real,V<:Real}
 	TV = promote_type(T,V)
@@ -80,13 +80,13 @@ mean(X::Semicircle)=X.mean
 median(X::Semicircle)=X.mean
 
 # mode(s) of distribution as vector
-modes{T}(X::Semicircle{T})=T[X.mean]
+modes(X::Semicircle{T}) where {T} = T[X.mean]
 
 # kurtosis of the distribution
-kurtosis{T}(X::Semicircle{T})=T(2)
+kurtosis(X::Semicircle{T}) where {T} = T(2)
 
 # skewness of the distribution
-skewness{T}(X::Semicircle{T})=T(0)
+skewness(X::Semicircle{T}) where {T} = T(0)
 
 # standard deviation of distribution
 std(X::Semicircle)=X.radius/2

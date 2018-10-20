@@ -1,5 +1,7 @@
-using Base.Test
 using RandomMatrices
+using Test
+
+@testset "GaussianEnsembles" begin
 
 @test Wigner{3} == GaussianHermite{3}
 
@@ -25,3 +27,5 @@ for (β, T, N) in [(1, Real, n), (2, Complex, n), (4, Complex, 2n)]
     ed = eigvaljpdf(d, vals)
     @test isa(ed, Real)
 end
+
+end # testset

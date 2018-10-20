@@ -7,7 +7,8 @@
 #     Power Series---Integration---Conformal Mapping---Location of Zeros,
 #     Wiley-Interscience: New York, 1974
 
-import Base: zero, one, eye, inv, length, ==, +, -, *, (.*), ^
+import Base: zero, one, inv, length, ==, +, -, *, ^
+import Base.Broadcast: broadcasted
 export FormalPowerSeries, fps, tovector, trim, isunit, isnonunit,
        MatrixForm, reciprocal, derivative, isconstant, compose,
        isalmostunit, FormalLaurentSeries
@@ -36,11 +37,11 @@ FormalPowerSeries(v::Vector{T}) where T = FormalPowerSeries{T}(v)
 #Convenient abbreviation for floats
 fps = FormalPowerSeries{Float64}
 
-zero{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[])
-one{T}(P::FormalPowerSeries{T}) = FormalPowerSeries(T[1])
+zero(P::FormalPowerSeries{T}) where {T} = FormalPowerSeries(T[])
+one(P::FormalPowerSeries{T}) where {T} = FormalPowerSeries(T[1])
 
 #Return truncated vector with c[i] = P[n[i]]
-function tovector{T,Index<:Integer}(P::FormalPowerSeries{T}, n::AbstractVector{Index})
+function tovector(P::FormalPowerSeries{T}, n::AbstractVector{Index}) where {T,Index<:Integer}
   nn = length(n)
   c = zeros(nn)
   for (k,v) in P.c, i in eachindex(n)
@@ -55,7 +56,7 @@ tovector(P::FormalPowerSeries, n::Integer)=tovector(P,1:n)
 # Basic housekeeping and properties
 
 # Remove extraneous zeros
-function trim{T}(P::FormalPowerSeries{T})
+function trim(P::FormalPowerSeries{T}) where {T}
   for (k,v) in P.c
     if v==0
       delete!(P.c, k)
@@ -64,9 +65,9 @@ function trim{T}(P::FormalPowerSeries{T})
   return P
 end
 
-length{T}(P::FormalPowerSeries{T})=max([k for (k,v) in P.c])
+length(P::FormalPowerSeries{T}) where {T} = maximum([k for (k,v) in P.c])
 
-function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+function ==(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   for (k,v) in P.c
     if v==0 #ignore explicit zeros
       continue
@@ -89,7 +90,7 @@ function =={T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
 end
 
 # Basic arithmetic [H, p.10]
-function +{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+function +(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   c = Dict{BigInt, T}()
   for (k,v) in P.c
     haskey(c,k) ? (c[k]+=v) : (c[k]=v)
@@ -100,7 +101,7 @@ function +{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
   FormalPowerSeries{T}(c)
 end
 
-function -{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+function -(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   c = Dict{BigInt, T}()
   for (k,v) in P.c
     c[k] = get(c,k,zero(T)) + v
@@ -112,7 +113,7 @@ function -{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
 end
 
 #negation
-function -{T}(P::FormalPowerSeries{T})
+function -(P::FormalPowerSeries{T}) where {T}
   c = Dict{BigInt, T}()
   for (k,v) in P.c
     c[k] = -v
@@ -121,18 +122,18 @@ function -{T}(P::FormalPowerSeries{T})
 end
 
 #multiplication by scalar
-function *{T}(P::FormalPowerSeries{T}, n::Number)
+function *(P::FormalPowerSeries{T}, n::Number) where {T}
   c = Dict{BigInt, T}()
   for (k,v) in P.c
     c[k] = n*v
   end
   FormalPowerSeries{T}(c)
 end
-*{T}(n::Number, P::FormalPowerSeries{T}) = *(P, n)
+*(n::Number, P::FormalPowerSeries{T}) where {T} = *(P, n)
 
 #Cauchy product [H, p.10]
-*{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) = CauchyProduct(P, Q)
-function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+*(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T} = CauchyProduct(P, Q)
+function CauchyProduct(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   c = Dict{BigInt, T}()
   for (k1, v1) in P.c, (k2, v2) in Q.c
       c[k1+k2]=get(c, k1+k2, zero(T))+v1*v2
@@ -141,12 +142,12 @@ function CauchyProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
 end
 
 #Hadamard product [H, p.10] - the elementwise product
-broadcast(::typeof(*), P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where T =
+broadcasted(::typeof(*), P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where T =
   HadamardProduct(P, Q)
-function HadamardProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+function HadamardProduct(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   c = Dict{BigInt, T}()
   for (k,v) in P.c
-    if v!=0 && haskey(Q.c,k) && Q.c[k]==0
+    if v!=0 && haskey(Q.c,k) && Q.c[k] !=0
       c[k] = v * Q.c[k]
     end
   end
@@ -154,23 +155,24 @@ function HadamardProduct{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
 end
 
 #The identity element over the complex numbers
-function eye{T <: Number}(P::FormalPowerSeries{T})
+#replacement for previous function eye(P::FormalPowerSeries{T})
+function FormalPowerSeries{T}(s::UniformScaling) where {T}
   c = Dict{BigInt, T}()
   c[0] = 1
-  FormalPowerSeries{T}(c)
+  return FormalPowerSeries{T}(c)
 end
 
-isunit{T <: Number}(P::FormalPowerSeries{T}) = P==eye(P)
+isunit(P::FormalPowerSeries{T}) where {T <: Number} = P==FormalPowerSeries{Float64}(I)
 
 # [H, p.12]
-isnonunit{T}(P::FormalPowerSeries{T}) = (!haskey(P.c, 0) || P.c[0]==0) && !isunit(P)
+isnonunit(P::FormalPowerSeries{T}) where {T} = (!haskey(P.c, 0) || P.c[0]==0) && !isunit(P)
 
 #Constructs the top left m x m block of the (infinite) semicirculant matrix
 #associated with the fps [H, Sec.1.3, p.14]
 #[H] calls it the semicirculant, but in contemporary nomenclature this is an
 #upper triangular Toeplitz matrix
 #This constructs the dense matrix - Toeplitz matrices don't exist in Julia yet
-function MatrixForm{T}(P::FormalPowerSeries{T}, m :: Integer)
+function MatrixForm(P::FormalPowerSeries{T}, m :: Integer) where {T}
   m<0 && error("Invalid matrix dimension $m requested")
   M=zeros(T, m, m)
   for (k,v) in P.c
@@ -254,13 +256,13 @@ end
 
 # Composition of fps [H, Sec.1.5, p.35]
 # This is the quick and dirty version
-function compose{T}(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T})
+function compose(P::FormalPowerSeries{T}, Q::FormalPowerSeries{T}) where {T}
   sum([v * Q^k for (k, v) in P.c])
 end
 
 
 #[H, p.45]
-function isalmostunit{T}(P::FormalPowerSeries{T})
+function isalmostunit(P::FormalPowerSeries{T}) where {T}
   (haskey(P.c, 0) && P.c[0]!=0) ? (return false) :
   (haskey(P.c, 1) && P.c[1]!=0) ? (return true) : (return false)
 end
@@ -271,7 +273,7 @@ end
 # [H. Sec.1.7, p.47, but more succinctly stated on p.55]
 # Constructs the upper left nxn subblock of the matrix representation
 # and inverts it
-function reversion{T}(P::FormalPowerSeries{T}, n :: Integer)
+function reversion(P::FormalPowerSeries{T}, n :: Integer) where {T}
   n>0 ? error("Need non-negative dimension") : nothing
 
   Q = P
