@@ -47,7 +47,7 @@ Synonym for GaussianHermite{β}
 """
 const Wigner{β} = GaussianHermite{β}
 
-rand{β}(d::Type{Wigner{β}}, dims...) = rand(d(), dims...)
+rand(d::Type{Wigner{β}}, dims...) where {β} = rand(d(), dims...)
 
 function rand(d::Wigner{1}, n::Int)
     A = randn(n, n)
@@ -70,10 +70,10 @@ function rand(d::Wigner{4}, n::Int)
     return Hermitian((A + A') / normalization)
 end
 
-rand{β}(d::Wigner{β}, n::Int) =
+rand(d::Wigner{β}, n::Int) where {β} =
     throw(ValueError("Cannot sample random matrix of size $n x $n for β=$β"))
 
-function rand{β}(d::Wigner{β}, dims...)
+function rand(d::Wigner{β}, dims...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
     else
@@ -89,7 +89,7 @@ Unlike for `rand(Wigner{β}, n)`, which is restricted to β=1,2 or 4,
 
 The β=∞ case is defined in Edelman, Persson and Sutton, 2012
 """
-function tridrand{β}(d::Wigner{β}, n::Int)
+function tridrand(d::Wigner{β}, n::Int) where {β}
     χ(df::Real) = rand(Distributions.Chi(df))
     if β≤0
         throw(ValueError("β = $β cannot be nonpositive"))
@@ -103,7 +103,7 @@ function tridrand{β}(d::Wigner{β}, n::Int)
     end
 end
 
-function tridrand{β}(d::Wigner{β}, dims...)
+function tridrand(d::Wigner{β}, dims...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
     else
@@ -119,7 +119,7 @@ eigvalrand(d::Wigner, n::Int) = eigvals(tridrand(d, n))
 """
 Calculate Vandermonde determinant term
 """
-function VandermondeDeterminant{Eigenvalue<:Number}(λ::AbstractVector{Eigenvalue}, β::Real)
+function VandermondeDeterminant(λ::AbstractVector{Eigenvalue}, β::Real) where {Eigenvalue<:Number}
     n = length(λ)
     Vandermonde = one(Eigenvalue)^β
     for j=1:n, i=1:j-1
@@ -131,7 +131,7 @@ end
 """
 Calculate joint eigenvalue density
 """
-function eigvaljpdf{β,Eigenvalue<:Number}(d::Wigner{β}, λ::AbstractVector{Eigenvalue})
+function eigvaljpdf(d::Wigner{β}, λ::AbstractVector{Eigenvalue}) where {β,Eigenvalue<:Number}
     n = length(λ)
     #Calculate normalization constant
     c = (2π)^(-n/2)
@@ -167,7 +167,7 @@ function rand(d::GaussianLaguerre, dims::Dim2)
     X = randn(dims) + im*randn(dims)
     Y = randn(dims) + im*randn(dims)
     A = [X Y; -conj(Y) conj(X)]
-    error(@sprintf("beta = %d is not implemented", d.beta))
+    error("beta = $(d.beta) is not implemented")
   end
   return (A * A') / dims[1]
 end
@@ -175,7 +175,7 @@ end
 #Generates a NxN bidiagonal Wishart matrix
 function bidrand(d::GaussianLaguerre, m::Integer)
   if d.a <= d.beta*(m-1)/2.0
-    error(@sprintf("Given your choice of m and beta, a must be at least %f (You said a = %f)", d.beta*(m-1)/2.0, d.a))
+      error("Given your choice of m and beta, a must be at least $(d.beta*(m-1)/2.0) (You said a = $(d.a))")
   end
   Bidiagonal([chi(2*d.a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
 end
@@ -191,7 +191,7 @@ end
 eigvalrand(d::GaussianLaguerre, m::Integer) = eigvals(tridrand(d, m))
 
 #TODO Check m and ns
-function eigvaljpdf{Eigenvalue<:Number}(d::GaussianLaguerre, lambda::Vector{Eigenvalue})
+function eigvaljpdf(d::GaussianLaguerre, lambda::Vector{Eigenvalue}) where {Eigenvalue<:Number}
   m = length(lambda)
   #Laguerre parameters
   p = 0.5*d.beta*(m-1) + 1.0
@@ -317,7 +317,7 @@ function eigvalrand(d::GaussianJacobi, n::Integer)
 end
 
 #TODO Check m and ns
-function eigvaljpdf{Eigenvalue<:Number}(d::GaussianJacobi, lambda::Vector{Eigenvalue})
+function eigvaljpdf(d::GaussianJacobi, lambda::Vector{Eigenvalue}) where {Eigenvalue<:Number}
   m = length(lambda)
   #Jacobi parameters
   a1, a2 = d.a, d.b

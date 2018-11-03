@@ -1,23 +1,25 @@
 using RandomMatrices
-using Base.Test
+using LinearAlgebra: I, tr
+using Test
 
-if isdefined(:_HAVE_GSL)
+@testset "Haar" begin
+
 N=5
 A=randn(N,N)
 B=randn(N,N)
-Q=UniformHaar(2, N)
+Q=rand(Haar(1), N)
 
 #Test case where there are no symbolic Haar matrices
-@test eval(expectation(N, :Q, :(A*B))) ≈ A*B
+@test_broken eval(expectation(:(A*B))) ≈ A*B
 #Test case where there is one pair of symbolic Haar matrices
-@test eval(expectedtrace(N, :Q, :(A*Q*B*Q'))) ≈ trace(A)*trace(B)/N
+@test_broken tr(eval(expectation(:(A*Q*B*Q')))) ≈ tr(A)*tr(B)/N
 
 println("Case 3")
-println("E(A*Q*B*Q'*A*Q*B*Q') = ", eval(expectation(N, :Q, :(A*Q*B*Q'*A*Q*B*Q'))))
+@test_broken println("E(A*Q*B*Q'*A*Q*B*Q') = ", eval(expectation(N, :Q, :(A*Q*B*Q'*A*Q*B*Q'))))
 
-for elty in (Float64, Complex128)
+for elty in (Float64, ComplexF64)
 	A = Stewart(elty, N)
-	@test A'A ≈ eye(N)
+        @test A'A ≈ Matrix{elty}(I, N, N)
 end
 
-end #_HAVE_GSL
+end # testset

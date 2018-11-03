@@ -4,7 +4,7 @@ import Distributions
 #Mauchly, 1940; Kendall and Stuart, 1968
 #n is the number of data points (samples)
 #This returns both the value of the test statistic and the expected distribution to test against
-function MauchlySphericityTestStatistic{T<:Real}(PopulationCovariance::AbstractMatrix{T}, SampleCovariance::AbstractMatrix{T}, n::Integer)
+function MauchlySphericityTestStatistic(PopulationCovariance::AbstractMatrix{T}, SampleCovariance::AbstractMatrix{T}, n::Integer) where {T<:Real}
     p = size(SampleCovariance)[1]
     C = inv(PopulationCovariance) * SampleCovariance
     l = (det(C)/(trace(C)/p)^p)
@@ -16,7 +16,7 @@ end
 #Johnstone's variant of the sphericity test
 #n, p>= 10 recommended
 #Johnstone (2001)
-function JohnstoneSphericityTestStatistic{T<:Real}(PopulationCovariance::AbstractMatrix{T}, SampleCovariance::AbstractMatrix{T}, n::Integer)
+function JohnstoneSphericityTestStatistic(PopulationCovariance::AbstractMatrix{T}, SampleCovariance::AbstractMatrix{T}, n::Integer) where {T<:Real}
     C = inv(PopulationCovariance) * SampleCovariance
     v = max(eigvals(C))
     mu=(sqrt(n-1)+sqrt(p))^2

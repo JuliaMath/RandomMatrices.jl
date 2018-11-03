@@ -27,7 +27,7 @@ function rand(W::Ginibre)
     end
 end
 
-function jpdf{z<:Complex}(Z::AbstractMatrix{z})
+function jpdf(Z::AbstractMatrix{z}) where {z<:Complex}
     pi^(size(Z,1)^2)*exp(-trace(Z'*Z))
 end
 

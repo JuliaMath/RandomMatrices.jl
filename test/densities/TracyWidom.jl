@@ -1,5 +1,7 @@
 using RandomMatrices
-using Compat.Test
+using Test
+
+@testset "TracyWidom" begin
 
 # CDF lies in correct range
 @test all(i->(0<i<1), cdf(TracyWidom, randn(5)))
@@ -15,3 +17,5 @@ using Compat.Test
 
 @test isfinite(rand(TracyWidom, 10))
 @test isfinite(rand(TracyWidom, 100))
+
+end # testset

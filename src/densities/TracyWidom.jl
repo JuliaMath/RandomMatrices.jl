@@ -40,27 +40,27 @@ doi.org/10.1090/S0025-5718-09-02280-7
 * `beta::Integer = 2`: The Dyson index defining the distribution. Takes values 1, 2, or 4
 * `num_points::Integer = 25`: The number of points in the quadrature
 """
-function cdf{T<:Real}(d::TracyWidom, s::T; beta::Integer=2, num_points::Integer=25)
+function cdf(d::TracyWidom, s::T; beta::Integer=2, num_points::Integer=25) where {T<:Real}
     beta ∈ (1,2,4) || throw(ArgumentError("Beta must be 1, 2, or 4"))
     quad = gausslegendre(num_points)
     _TWcdf(s, beta, quad)
 end
 
-function cdf{T<: Real}(d::Type{TracyWidom}, s::T; beta::Integer=2, num_points::Integer=25)
+function cdf(d::Type{TracyWidom}, s::T; beta::Integer=2, num_points::Integer=25) where {T<: Real}
     cdf(d(), s, beta=beta, num_points=num_points)
 end
 
-function cdf{T<:Real}(d::TracyWidom, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25)
+function cdf(d::TracyWidom, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25) where {T<:Real}
     beta ∈ (1,2,4) || throw(ArgumentError("Beta must be 1, 2, or 4"))
     quad = gausslegendre(num_points)
     [_TWcdf(s, beta, quad) for s in s_vals]
 end
 
-function cdf{T<:Real}(d::Type{TracyWidom}, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25)
+function cdf(d::Type{TracyWidom}, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25) where {T<:Real}
     cdf(d(), s_vals, beta=beta, num_points=num_points)
 end
 
-function _TWcdf{T<:Real}(s::T, beta::Integer, quad::Tuple{Array{Float64,1},Array{Float64,1}})
+function _TWcdf(s::T, beta::Integer, quad::Tuple{Array{Float64,1},Array{Float64,1}}) where {T<:Real}
     if beta == 2
         kernel = ((ξ,η) -> _K2tilde(ξ,η,s))
         return _fredholm_det(kernel, quad)
@@ -76,13 +76,13 @@ function _TWcdf{T<:Real}(s::T, beta::Integer, quad::Tuple{Array{Float64,1},Array
     end
 end
 
-function _fredholm_det{T<:Real}(kernel::Function, quad::Tuple{Array{T,1},Array{T,1}})
+function _fredholm_det(kernel::Function, quad::Tuple{Array{T,1},Array{T,1}}) where {T<:Real}
     nodes, weights = quad
     N = length(nodes)
     sqrt_weights = sqrt.(weights)
     weights_matrix = kron(transpose(sqrt_weights),sqrt_weights)
     K_matrix = [kernel(ξ,η) for ξ in nodes, η in nodes]
-    det(eye(N) - weights_matrix .* K_matrix)
+    det(I - weights_matrix .* K_matrix)
 end
 
 _ϕ(ξ, s) =  s + 10*tan(π*(ξ+1)/4)

@@ -1,7 +1,9 @@
 using RandomMatrices
-using Base.Test
+using LinearAlgebra: norm
+using Test
 
-srand(4)
+@testset "FormalPowerSeries" begin
+seed!(4)
 
 # Excursions in formal power series (fps)
 MaxSeriesSize=8
@@ -51,11 +53,7 @@ end
 #of the original series
 #Force reciprocal to exist
 X.c[0] = 1
-discrepancy = if Base.VERSION < v"0.5-"
-    (norm(inv(float(MatrixForm(X,c)))[1, :]'[:, 1] - tovector(reciprocal(X, c), 0:c-1)))
-else
-    (norm(inv(float(MatrixForm(X,c)))[1, :][:, 1] - tovector(reciprocal(X, c), 0:c-1)))
-end
+discrepancy = (norm(inv(float(MatrixForm(X,c)))[1, :][:, 1] - tovector(reciprocal(X, c), 0:c-1)))
 tol = c*√eps()
 if discrepancy > tol
     error(string("Error ", discrepancy, " exceeds tolerance ", tol))
@@ -78,3 +76,4 @@ end
 #Test chain rule [H, Sec.1.6, p.40]
 @test derivative(compose(X,Y)) == compose(derivative(X),Y)*derivative(Y)
 
+end # testset
