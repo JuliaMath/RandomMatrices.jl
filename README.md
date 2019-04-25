@@ -39,9 +39,9 @@ The hierarchy of dense matrices provided are
   - Gaussian unitary ensemble (GUE, `beta=2`) - complex and Hermitian
   - Gaussian symplectic ensemble (GSE, `beta=4`) - quaternionic and self-dual
 - Circular ensemble - uniformly distributed with `|det|=1`
-  - Circular orthogonal ensemble (GOE, `beta=1`)
-  - Circular unitary ensemble (GUE, `beta=2`)
-  - Circular symplectic ensemble (GSE, `beta=4`)
+  - Circular orthogonal ensemble (COE, `beta=1`)
+  - Circular unitary ensemble (CUE, `beta=2`)
+  - Circular symplectic ensemble (CSE, `beta=4`)
 - Laguerre matrices = white Wishart matrices
 - Jacobi matrices = MANOVA matrices
 - Unitary invariant ensembles
