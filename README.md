@@ -19,7 +19,6 @@ synonyms are listed.
 
 Additional functionality is provided when these optional packages are installed:
 - Symbolic manipulation of Haar matrices with [GSL.jl](https://github.com/jiahao/GSL.jl)
-- Invariant ensembles with [ApproxFun.jl](https://github.com/dlfivefifty/ApproxFun.jl)
 
 # Gaussian matrix ensembles
 
@@ -44,7 +43,6 @@ The hierarchy of dense matrices provided are
   - Circular symplectic ensemble (CSE, `beta=4`)
 - Laguerre matrices = white Wishart matrices
 - Jacobi matrices = MANOVA matrices
-- Unitary invariant ensembles
 
 Unless otherwise specified, `beta=1,2,4` are supported. For the symplectic matrices `beta=4`,
 the 2x2 outer block-diagonal complex representation `USp(2N)` is used.
@@ -88,11 +86,6 @@ Hermite, Laguerre(m) and Jacobi(m1, m2) ensembles.
    is applied to the raw QR decomposition. By default, `correction=1` (Edelman's correction) is
    used. Other valid values are `0` (no correction) and `2` (Mezzadri's correction).
  - `NeedsPiecewiseCorrection()` implements a simple test to see if a correction is necessary.
-
-- `InvariantEnsemble(str,n)`
-   Generates a unitary invariant ensemble, where str determines the
-   potential of the ensemble, see below.
-   Only available if ApproxFun package is installed.
 
 The parameters `m`, `m1`, `m2` refer to the number to independent "data" degrees of freedom.
 For the dense samples these must be `Integer`s but can be `Real`s for the rest.
@@ -168,21 +161,7 @@ The available `StochasticProcess`es are
 # Invariant ensembles
 
 `InvariantEnsemble(str,n)` supports n x n unitary invariant ensemble
- with distribution
-
-`exp(- Tr Q(M)) dM`
-
- `str` specifies an ensemble with precomputed recurrence coefficients.
-  The currently include ensembles are
-
-|                   | Q(M) |
-| ----------------- | ----- |
-| `Quartic`         | n M^4 |
-| `Eighth`          | n M^8 |
-| `HODecay`         | n (M^4/20 - 4/15M^3 +M^2/5 + 8/5M) |
-| `CoshUnscaled`    | cosh(M) |
-| `QuarticUnscaled` | M^4     |
-| `EightUnscaled`   | M^8     |
+ with distribution. This has been moved to separate package [InvariantEnsembles.jl](https://github.com/dlfivefifty/InvariantEnsembles.jl)
 
 # References
 - James Albrecht, Cy Chan, and Alan Edelman,

@@ -1,2 +1,3 @@
 demos/*/*/*.png
 data/SpectraDatabase
+.DS_Store

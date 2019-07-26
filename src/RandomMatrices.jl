@@ -4,7 +4,6 @@ using Combinatorics
 using GSL
 using SpecialFunctions, FastGaussQuadrature
 using LinearAlgebra
-using Requires
 
 import Base: isinf, rand, convert
 import Distributions: ContinuousUnivariateDistribution,
@@ -50,12 +49,5 @@ include("StatisticalTests.jl")
 
 #Stochastic processes
 include("StochasticProcess.jl")
-
-#Invariant ensembles
-function __init__()
-    @require ApproxFun="28f2ccd6-bb30-5033-b560-165f7b14dc2f" begin
-        include("InvariantEnsembles.jl")
-    end
-end
 
 end
