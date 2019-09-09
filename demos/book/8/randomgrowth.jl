@@ -12,7 +12,7 @@ function random_growth(M, N, q)
         sets = next_possible_squares(G)
         ## Highlights all the possible squares
         for i = 1:length(sets)
-            idx = sets[i]::(Int,Int)
+            idx = sets[i]
             G[idx[1], idx[2]] = 0.25
         end
         display(imagesc((0,N), (M,0), G))
@@ -22,21 +22,21 @@ function random_growth(M, N, q)
         for i = 1:length(sets)
             ison = 0.5 * (rand() > (1-q))
             if ison > 0
-                idx = sets[i]::(Int,Int)
+                idx = sets[i]
                 G[idx[1], idx[2]] = ison
             end
         end
         display(imagesc((0,N), (M,0), G))
-        G[G .== 0.5] = 1
-        G[G .== 0.25] = 0
+        G[findall(G .== 0.5)] .= 1
+        G[findall(G .== 0.25)] .= 0
         sleep(.01)
     end
     return G
 end
 
 function next_possible_squares(G)
-    M, N = size(G)::(Int,Int)
-    sets = Array((Int,Int),0)
+    M, N = size(G)
+    sets = Array{Tuple{Int,Int}, 1}(undef, 0)
     for ii = 1:M
         for jj = 1:N
             if G[ii, jj] == 0
