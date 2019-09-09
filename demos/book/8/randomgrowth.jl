@@ -27,8 +27,8 @@ function random_growth(M, N, q)
             end
         end
         display(imagesc((0,N), (M,0), G))
-        G[findall(G .== 0.5)] .= 1
-        G[findall(G .== 0.25)] .= 0
+        G[findall(isequal(0.50), G)] .= 1
+        G[findall(isequal(0.25), G)] .= 0
         sleep(.01)
     end
     return G
