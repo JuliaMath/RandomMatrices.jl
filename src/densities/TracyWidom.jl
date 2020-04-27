@@ -9,10 +9,10 @@ matrix with iid Gaussian matrix elements of variance 1/2 and mean 0.
 The cdf of Tracy-Widom is given by
 
 ``
-F_beta (s) = lim_{n→∞} Pr(√2 n^{1/6} (λ_max - √(2n) ≤ s)
+F_β (s) = lim_{n→∞} Pr(√2 n^{1/6} (λ_max - √(2n) ≤ s)
 ``
 
-where beta = 1, 2, or 4 for the orthogonal, unitary, or symplectic ensembles.
+where β = 1, 2, or 4 for the orthogonal, unitary, or symplectic ensembles.
 
 References:
 
@@ -23,7 +23,9 @@ References:
 Numerical routines adapted from Alan Edelman's course notes for MIT 18.338,
 Random Matrix Theory, 2016.
 """
-struct TracyWidom <: ContinuousUnivariateDistribution end
+struct TracyWidom{T} <: ContinuousUnivariateDistribution
+	β::T
+end
 
 
 """
@@ -37,27 +39,26 @@ doi.org/10.1090/S0025-5718-09-02280-7
 # Arguments
 * `d::TracyWidom` or `Type{TracyWidom}`: an instance of `TracyWidom` or the type itself
 * `s::Real`: The point at which to evaluate the cdf
-* `beta::Integer = 2`: The Dyson index defining the distribution. Takes values 1, 2, or 4
 * `num_points::Integer = 25`: The number of points in the quadrature
 """
-function cdf(d::TracyWidom, s::T; beta::Integer=2, num_points::Integer=25) where {T<:Real}
-    beta ∈ (1,2,4) || throw(ArgumentError("Beta must be 1, 2, or 4"))
+function cdf(d::TracyWidom, s::T; num_points::Integer=25) where {T<:Real}
+    d.β ∈ (1,2,4) || throw(ArgumentError("β must be 1, 2, or 4"))
     quad = gausslegendre(num_points)
-    _TWcdf(s, beta, quad)
+    _TWcdf(s, d.β, quad)
 end
 
 function cdf(d::Type{TracyWidom}, s::T; beta::Integer=2, num_points::Integer=25) where {T<: Real}
-    cdf(d(), s, beta=beta, num_points=num_points)
+    cdf(d(beta), s, num_points=num_points)
 end
 
-function cdf(d::TracyWidom, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25) where {T<:Real}
-    beta ∈ (1,2,4) || throw(ArgumentError("Beta must be 1, 2, or 4"))
+function cdf(d::TracyWidom, s_vals::AbstractArray{T}; num_points::Integer=25) where {T<:Real}
+    d.β ∈ (1,2,4) || throw(ArgumentError("β must be 1, 2, or 4"))
     quad = gausslegendre(num_points)
-    [_TWcdf(s, beta, quad) for s in s_vals]
+    [_TWcdf(s, d.β, quad) for s in s_vals]
 end
 
 function cdf(d::Type{TracyWidom}, s_vals::AbstractArray{T}; beta::Integer=2, num_points::Integer=25) where {T<:Real}
-    cdf(d(), s_vals, beta=beta, num_points=num_points)
+    cdf(d(beta), s_vals, num_points=num_points)
 end
 
 function _TWcdf(s::T, beta::Integer, quad::Tuple{Array{Float64,1},Array{Float64,1}}) where {T<:Real}
@@ -117,4 +118,4 @@ function rand(d::TracyWidom, n::Int)
     b=[χ(i) for i=(n-1):-1:k]
     v=eigmax(SymTridiagonal(a, b))
 end
-rand(d::Type{TracyWidom}, t::Integer) = rand(d(), t)
+rand(d::Type{TracyWidom}, t::Integer) = rand(d(2), t)
