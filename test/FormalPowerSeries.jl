@@ -76,4 +76,11 @@ end
 #Test chain rule [H, Sec.1.6, p.40]
 @test derivative(compose(X,Y)) == compose(derivative(X),Y)*derivative(Y)
 
+# zero and one elements
+x = FormalPowerSeries([1,2,3])
+@test zero(x) == FormalPowerSeries{Int64}(Dict{BigInt, Int64}())
+@test zero(typeof(x)) == FormalPowerSeries{Int64}(Dict{BigInt, Int64}())
+@test one(x) == FormalPowerSeries{Int64}(Dict{BigInt, Int64}(0 => 1))
+@test one(typeof(x)) == FormalPowerSeries{Int64}(Dict{BigInt, Int64}(0 => 1))
+
 end # testset

@@ -39,8 +39,8 @@ fps = FormalPowerSeries{Float64}
 
 zero(::Type{FormalPowerSeries{T}}) where {T} = FormalPowerSeries(T[])
 one(::Type{FormalPowerSeries{T}}) where {T} = FormalPowerSeries(T[1])
-zero(::FormalPowerSeries{T}) where {T} = zero(FormalPowerSeries(T[]))
-one(::FormalPowerSeries{T}) where {T} = zero(FormalPowerSeries(T[1]))
+zero(::FormalPowerSeries{T}) where {T} = zero(FormalPowerSeries{T})
+one(::FormalPowerSeries{T}) where {T} = one(FormalPowerSeries{T})
 
 #Return truncated vector with c[i] = P[n[i]]
 function tovector(P::FormalPowerSeries{T}, n::AbstractVector{Index}) where {T,Index<:Integer}
