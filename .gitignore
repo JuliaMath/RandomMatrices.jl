@@ -1,3 +1,4 @@
 demos/*/*/*.png
 data/SpectraDatabase
 .DS_Store
+Manifest.toml
