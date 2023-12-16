@@ -71,13 +71,13 @@ function rand(d::Wigner{4}, n::Int)
 end
 
 rand(d::Wigner{β}, n::Int) where {β} =
-    throw(ValueError("Cannot sample random matrix of size $n x $n for β=$β"))
+    throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$β"))
 
-function rand(d::Wigner{β}, dims...) where {β}
+function rand(d::Wigner{β}, dims::Int...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
     else
-        throw(ValueError("Cannot sample random matrix of size $dims for β=$β"))
+        throw(ArgumentError("Cannot sample random matrix of size $dims for β=$β"))
     end
 end
 
@@ -92,7 +92,7 @@ The β=∞ case is defined in Edelman, Persson and Sutton, 2012
 function tridrand(d::Wigner{β}, n::Int) where {β}
     χ(df::Real) = rand(Distributions.Chi(df))
     if β≤0
-        throw(ValueError("β = $β cannot be nonpositive"))
+        throw(ArgumentError("β = $β cannot be nonpositive"))
     elseif isinf(β)
         return tridrand(Wigner{Inf}, n)
     else
@@ -107,7 +107,7 @@ function tridrand(d::Wigner{β}, dims...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
     else
-        throw(ValueError("Cannot sample random matrix of size $dims for β=$β"))
+        throw(ArgumentError("Cannot sample random matrix of size $dims for β=$β"))
     end
 end
 
