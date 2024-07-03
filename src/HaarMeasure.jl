@@ -83,29 +83,44 @@ end
 
 
 import Base.size
-import LinearAlgebra.lmul!
-import LinearAlgebra.rmul!
+import LinearAlgebra: lmul!, rmul!, QRPackedQ, Diagonal, Adjoint
 
-struct StewartQ{T,S<:LinearAlgebra.QRPackedQ{T},C<:AbstractVector{Int}} <: LinearAlgebra.AbstractQ{T}
-    q::S
-    signs::C
+
+
+struct StewartQ{T,S<:AbstractMatrix{T},C<:AbstractVector{T},D<:AbstractVector{T}} <: LinearAlgebra.AbstractQ{T}
+    factors::S
+    τ::C
+    signs::D
 end
-size(Q::StewartQ, dim::Integer) = size(Q.q, dim)
-size(Q::StewartQ) = size(Q.q)
+size(Q::StewartQ, dim::Integer) = size(Q.factors, dim == 2 ? 1 : dim)
+size(Q::StewartQ) = (n = size(Q.factors, 1); (n, n))
 
-lmul!(A::StewartQ, B::AbstractVecOrMat) = lmul!(A.q, lmul!(LinearAlgebra.Diagonal(A.signs), B))
-lmul!(adjA::LinearAlgebra.AdjointQ{<:Any,<:StewartQ}, B::AbstractVecOrMat) =
-    lmul!(LinearAlgebra.Diagonal(adjA.Q.signs), lmul!(adjA.Q.q', B))
-rmul!(A::AbstractVecOrMat, B::StewartQ) = rmul!(rmul!(A, B.q), LinearAlgebra.Diagonal(B.signs))
-rmul!(A::AbstractVecOrMat, adjB::LinearAlgebra.AdjointQ{<:Any,<:StewartQ}) =
-    rmul!(rmul!(A, LinearAlgebra.Diagonal(adjB.Q.signs)), adjB.Q.q')
+lmul!(A::StewartQ, B::AbstractVecOrMat) = lmul!(QRPackedQ(A.factors,A.τ), lmul!(Diagonal(A.signs), B))
+rmul!(A::AbstractVecOrMat, B::StewartQ) = rmul!(rmul!(A, QRPackedQ(B.factors,B.τ)), Diagonal(B.signs))
+
+@static if VERSION ≥ v"1.10"
+    import LinearAlgebra.AdjointQ
+    lmul!(adjA::AdjointQ{<:Any,<:StewartQ}, B::AbstractVecOrMat) =
+        lmul!(Diagonal(adjA.Q.signs), lmul!(QRPackedQ(adjA.Q.factors, adjA.Q.τ)', B))
+    rmul!(A::AbstractVecOrMat, adjB::AdjointQ{<:Any,<:StewartQ}) =
+        rmul!(rmul!(A, Diagonal(adjB.Q.signs)), QRPackedQ(adjB.Q.factors, adjB.Q.τ)')
+    else
+    lmul!(adjA::Adjoint{<:Any,<:StewartQ}, B::AbstractVecOrMat) =
+        lmul!(Diagonal(adjA.parent.signs), lmul!(QRPackedQ(adjA.parent.factors, adjA.parent.τ)', B))
+    rmul!(A::AbstractVecOrMat, adjB::Adjoint{<:Any,<:StewartQ}) =
+        rmul!(rmul!(A, Diagonal(adjB.parent.signs)), QRPackedQ(adjB.parent.factors,adjB.parent.τ)')
+end
+
+StewartQ{T}(Q::StewartQ) where {T} = StewartQ(convert(AbstractMatrix{T}, Q.factors), convert(Vector{T}, Q.τ), convert(Vector{T}, Q.signs))
+AbstractMatrix{T}(Q::StewartQ{T}) where {T} = Q
+AbstractMatrix{T}(Q::StewartQ) where {T} = StewartQ{T}(Q)
 
 """
 Stewart's algorithm for sampling orthogonal/unitary random matrices in time O(n^2)
 """
 function Stewart(::Type{T}, n) where {T<:Union{Float64,ComplexF64}}
     τ = Array{T}(undef, n)
-    signs = Vector{Int}(undef, n)
+    signs = Vector{T}(undef, n)
     H = randn(T, n, n)
 
     pτ = pointer(τ)
@@ -117,7 +132,7 @@ function Stewart(::Type{T}, n) where {T<:Union{Float64,ComplexF64}}
         larfg!(n - i, pβ + (n + 1)*8*incr*i, pH + (n + 1)*8*incr*i, 1, pτ + 8*incr*i)
         signs[i+1] = sign(real(H[i+1, i+1]))
     end
-    return StewartQ(LinearAlgebra.QRPackedQ(H, τ), signs)
+    return StewartQ(H, τ, signs)
 end
 
 export randfast

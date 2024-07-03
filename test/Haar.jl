@@ -1,5 +1,5 @@
 using RandomMatrices
-using LinearAlgebra: I, tr, Diagonal
+using LinearAlgebra: I, tr, Diagonal, QRPackedQ
 using Test
 
 @testset "Haar" begin
@@ -21,7 +21,7 @@ for T in (Float64, ComplexF64)
     A = Stewart(T, N)
     @test A'A ≈ Matrix{T}(I, N, N)
     A2 = Matrix(A)
-    @test A2 ≈ A.q*Diagonal(A.signs)
+    @test A2 ≈ QRPackedQ(A.factors, A.τ)*Diagonal(A.signs)
     C = randn(T, N, N)
     @test A*C ≈ A2*C
     @test C*A ≈ C*A2
