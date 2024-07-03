@@ -1,5 +1,5 @@
 using RandomMatrices
-using LinearAlgebra: I, tr
+using LinearAlgebra: I, tr, Diagonal
 using Test
 
 @testset "Haar" begin
@@ -17,9 +17,16 @@ Q=rand(Haar(1), N)
 println("Case 3")
 @test_broken println("E(A*Q*B*Q'*A*Q*B*Q') = ", eval(expectation(N, :Q, :(A*Q*B*Q'*A*Q*B*Q'))))
 
-for elty in (Float64, ComplexF64)
-	A = Stewart(elty, N)
-        @test A'A ≈ Matrix{elty}(I, N, N)
+for T in (Float64, ComplexF64)
+    A = Stewart(T, N)
+    @test A'A ≈ Matrix{T}(I, N, N)
+    A2 = Matrix(A)
+    @test A2 ≈ A.q*Diagonal(A.signs)
+    C = randn(T, N, N)
+    @test A*C ≈ A2*C
+    @test C*A ≈ C*A2
+    @test A'*C ≈ A2'*C
+    @test C*A' ≈ C*A2'
 end
 
 end # testset

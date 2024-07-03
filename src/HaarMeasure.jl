@@ -36,7 +36,7 @@ function rand(W::Haar, n::Int, doCorrection::Int=1)
         else
             error(string("beta = ",beta, " not implemented."))
         end
-        q*diagm(0 => L)
+        q*Diagonal(L)
     elseif doCorrection==2
         if beta==1
             L=sign.(diag(r))
@@ -46,7 +46,7 @@ function rand(W::Haar, n::Int, doCorrection::Int=1)
         else
             error(string("beta = ",beta, " not implemented."))
         end
-        q*diagm(0 => L)
+        q*Diagonal(L)
     end
 end
 
@@ -81,36 +81,45 @@ for (s, elty) in (("dlarfg_", Float64),
     end
 end
 
+
+import Base.size
+import LinearAlgebra.lmul!
+import LinearAlgebra.rmul!
+
+struct StewartQ{T,S<:LinearAlgebra.QRPackedQ{T},C<:AbstractVector{Int}} <: LinearAlgebra.AbstractQ{T}
+    q::S
+    signs::C
+end
+size(Q::StewartQ, dim::Integer) = size(Q.q, dim)
+size(Q::StewartQ) = size(Q.q)
+
+lmul!(A::StewartQ, B::AbstractVecOrMat) = lmul!(A.q, lmul!(LinearAlgebra.Diagonal(A.signs), B))
+lmul!(adjA::LinearAlgebra.AdjointQ{<:Any,<:StewartQ}, B::AbstractVecOrMat) =
+    lmul!(LinearAlgebra.Diagonal(adjA.Q.signs), lmul!(adjA.Q.q', B))
+rmul!(A::AbstractVecOrMat, B::StewartQ) = rmul!(rmul!(A, B.q), LinearAlgebra.Diagonal(B.signs))
+rmul!(A::AbstractVecOrMat, adjB::LinearAlgebra.AdjointQ{<:Any,<:StewartQ}) =
+    rmul!(rmul!(A, LinearAlgebra.Diagonal(adjB.Q.signs)), adjB.Q.q')
+
 """
-Stewarts algorithm for n^2 orthogonal random matrix
+Stewart's algorithm for sampling orthogonal/unitary random matrices in time O(n^2)
 """
-function Stewart(::Type{Float64}, n)
-    τ = Array{Float64}(undef, n)
-    H = randn(n, n)
+function Stewart(::Type{T}, n) where {T<:Union{Float64,ComplexF64}}
+    τ = Array{T}(undef, n)
+    signs = Vector{Int}(undef, n)
+    H = randn(T, n, n)
 
     pτ = pointer(τ)
     pβ = pointer(H)
     pH = pointer(H, 2)
 
-    for i = 0:n-2
-        larfg!(n - i, pβ + (n + 1)*8i, pH + (n + 1)*8i, 1, pτ + 8i)
+    incr = (T <: Real ? 1 : 2)
+    for i = 0:n-1
+        larfg!(n - i, pβ + (n + 1)*8*incr*i, pH + (n + 1)*8*incr*i, 1, pτ + 8*incr*i)
+        signs[i+1] = sign(real(H[i+1, i+1]))
     end
-    LinearAlgebra.QRPackedQ(H,τ)
+    return StewartQ(LinearAlgebra.QRPackedQ(H, τ), signs)
 end
-
-function Stewart(::Type{ComplexF64}, n)
-    τ = Array{ComplexF64}(undef, n)
-    H = complex.(randn(n, n), randn(n,n))
-
-    pτ = pointer(τ)
-    pβ = pointer(H)
-    pH = pointer(H, 2)
-
-    for i = 0:n-2
-        larfg!(n - i, pβ + (n + 1)*16i, pH + (n + 1)*16i, 1, pτ + 16i)
-    end
-    LinearAlgebra.QRPackedQ(H,τ)
-end
+export Stewart
 
 export randfast
 function randfast(W::Haar, n::Int)
