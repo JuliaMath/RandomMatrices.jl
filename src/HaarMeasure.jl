@@ -119,7 +119,6 @@ function Stewart(::Type{T}, n) where {T<:Union{Float64,ComplexF64}}
     end
     return StewartQ(LinearAlgebra.QRPackedQ(H, τ), signs)
 end
-export Stewart
 
 export randfast
 function randfast(W::Haar, n::Int)
