@@ -24,20 +24,25 @@ export GaussianHermite, GaussianLaguerre, GaussianJacobi,
 #####################
 
 """
-GaussianHermite{β} represents a Gaussian Hermite ensemble with parameter β.
+    GaussianHermite(β::Int) <: ContinuousMatrixDistribution
 
-Wigner{β} is a synonym.
+Represents a Gaussian Hermite ensemble with Dyson index `β`.
 
-Example of usage:
+`Wigner(β)` is a synonym.
 
-    β = 2 #β = 1, 2, 4 generates real, complex and quaternionic matrices respectively.
-    d = Wigner{β} #same as GaussianHermite{β}
+## Examples
 
-    n = 20 #Generate square matrices of this size
+```jldoctest
+julia> d = Wigner(2); n = 3;
 
-    S = rand(d, n)       #Generate a 20x20 symmetric Wigner matrix
-    T = tridrand(d, n)   #Generate the symmetric tridiagonal form
-    v = eigvalrand(d, n) #Generate a sample of eigenvalues
+julia> Random.seed!(1234); 
+
+julia> rand(d, n)
+3×3 LinearAlgebra.Hermitian{ComplexF64, Matrix{ComplexF64}}:
+  0.560409+0.0im       -0.292145+0.125521im      1.04191+0.513798im
+ -0.292145-0.125521im  -0.346868+0.0im         0.0228835-0.00164725im
+   1.04191-0.513798im  0.0228835+0.00164725im  -0.118721+0.0im
+```
 """
 struct GaussianHermite{β} <: ContinuousMatrixDistribution end
 GaussianHermite(β) = GaussianHermite{β}()
@@ -47,6 +52,13 @@ Synonym for GaussianHermite{β}
 """
 const Wigner{β} = GaussianHermite{β}
 
+"""
+    rand(d::Wigner, n::Int)
+
+Generates an `n × n` matrix randomly sampled from the Gaussian-Hermite ensemble (also known as the Wigner ensemble).
+
+The Dyson index `β` is restricted to `β = 1,2` or `4`, for real, complex, and quaternionic fields, respectively.
+"""
 rand(d::Type{Wigner{β}}, dims...) where {β} = rand(d(), dims...)
 
 function rand(d::Wigner{1}, n::Int)
@@ -82,12 +94,15 @@ function rand(d::Wigner{β}, dims::Int...) where {β}
 end
 
 """
-Generates a nxn symmetric tridiagonal Wigner matrix
+    tridand(d::Wigner, n::Int)
 
-Unlike for `rand(Wigner{β}, n)`, which is restricted to β=1,2 or 4,
-`trirand(Wigner{β}, n)` will generate a
+Generates an `n × n` symmetric tridiagonal matrix from the Gaussian-Hermite ensemble (also known as the Wigner ensemble).
 
-The β=∞ case is defined in Edelman, Persson and Sutton, 2012
+Unlike for `rand(Wigner(β), n)`, which is restricted to `β = 1,2` or `4`,
+the call `trirand(Wigner(β), n)` will generate a tridiagonal Wigner matrix for any positive
+value of `β`, including infinity.
+
+The `β == ∞` case is defined in Edelman, Persson and Sutton, 2012.
 """
 function tridrand(d::Wigner{β}, n::Int) where {β}
     χ(df::Real) = rand(Distributions.Chi(df))
@@ -146,16 +161,37 @@ end
 # Laguerre ensemble #
 #####################
 
+"""
+    GaussianLaguerre(β::Real, a::Real)` <: ContinuousMatrixDistribution
+
+Represents a Gaussian-Laguerre ensemble with Dyson index `β` and `a` parameter
+used to control the density of eigenvalues near `λ = 0`.
+
+`Wishart(β, a)` is a synonym.
+
+## Fields
+- `beta`: Dyson index
+- `a`: Parameter used for weighting the joint probability density function of the ensemble
+
+## References:
+- Edelman and Rao, 2005
+"""
 mutable struct GaussianLaguerre <: ContinuousMatrixDistribution
   beta::Real
   a::Real
 end
 const Wishart = GaussianLaguerre
 
-
-#Generates a NxN Hermitian Wishart matrix
 #TODO Check - the eigenvalue distribution looks funky
 #TODO The appropriate matrix size should be calculated from a and one matrix dimension
+"""
+    rand(d::GaussianLaguerre, dims::Tuple)
+
+Generate a random matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble)
+with parameters defined in `d` and dimensions given by `dims`.
+
+The Dyson index `β` is restricted to `β = 1,2` or `4`, for real, complex, and quaternionic fields, respectively.
+"""
 function rand(d::GaussianLaguerre, dims::Dim2)
   n = 2.0*a/d.beta
   if d.beta == 1 #real
@@ -172,7 +208,11 @@ function rand(d::GaussianLaguerre, dims::Dim2)
   return (A * A') / dims[1]
 end
 
-#Generates a NxN bidiagonal Wishart matrix
+"""
+    bidrand(d::GaussianLaguerre, n::Int)
+
+Generate an `n × n` bidiagonal matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble).
+"""
 function bidrand(d::GaussianLaguerre, m::Integer)
   if d.a <= d.beta*(m-1)/2.0
       error("Given your choice of m and beta, a must be at least $(d.beta*(m-1)/2.0) (You said a = $(d.a))")
@@ -180,7 +220,11 @@ function bidrand(d::GaussianLaguerre, m::Integer)
   Bidiagonal([chi(2*d.a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
 end
 
-#Generates a NxN tridiagonal Wishart matrix
+"""
+    tridrand(d::GaussianLaguerre, n::Int)
+
+Generate an `n × n` tridiagonal matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble).
+"""
 function tridrand(d::GaussianLaguerre, m::Integer)
   B = bidrand(d, m)
   L = B * B'
@@ -218,7 +262,22 @@ end
 # Jacobi ensemble #
 ###################
 
-#Generates a NxN self-dual MANOVA matrix
+"""
+    GaussianJacobi(β::Real, a::Real, a::Real)` <: ContinuousMatrixDistribution
+
+Represents a Gaussian-Jacobi ensemble with Dyson index `β`, while
+`a`and `b` are parameters used to weight the joint probability density function of the ensemble.
+
+`MANOVA(β, a, b)` is a synonym.
+
+## Fields
+- `beta`: Dyson index
+- `a`: Parameter used for shaping the joint probability density function near `λ = 0`
+- `b`: Parameter used for shaping the joint probability density function near `λ = 1`
+
+## References:
+- Edelman and Rao, 2005
+"""
 mutable struct GaussianJacobi <: ContinuousMatrixDistribution
   beta::Real
   a::Real
@@ -226,6 +285,12 @@ mutable struct GaussianJacobi <: ContinuousMatrixDistribution
 end
 const MANOVA = GaussianJacobi
 
+"""
+    rand(d::GaussianJacobi, n::Int)
+
+Generate an `n × n` random matrix sampled from the Gaussian-Jacobi ensemble (also known as the MANOVA ensemble)
+with parameters defined in `d`.
+"""
 function rand(d::GaussianJacobi, m::Integer)
   w1 = Wishart(m, int(2.0*d.a/d.beta), d.beta)
   w2 = Wishart(m, int(2.0*d.b/d.beta), d.beta)
