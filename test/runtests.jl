@@ -8,6 +8,7 @@ using Test
 	include("FormalPowerSeries.jl")
 	include("Haar.jl")
 	include("StochasticProcess.jl")
+	include("doctests.jl")
 	
 	@testset "densities" begin
 		include("densities/Semicircle.jl")

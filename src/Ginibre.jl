@@ -1,15 +1,42 @@
 export rand, Ginibre
 import Base.rand
 
-#Samples a matrix from the Ginibre ensemble
-#This ensemble lives in GL(N, F), the set of all invertible N x N matrices
-#over the field F
-#For beta=1,2,4, F=R, C, H respectively
+"""
+    Ginibre(β::Int, N::Int) <: ContinuousMatrixDistribution
+
+Represents a Ginibre ensemble with Dyson index `β` living in `GL(N, F)`, the set
+of all invertible `N × N` matrices over the field `F`. 
+
+## Fields
+- `beta`: Dyson index
+- `N`: Matrix dimension over the field `F`.
+
+## Examples
+
+```@example
+julia> rand(Ginibre(2, 3))
+3×3 Matrix{ComplexF64}:
+ 0.781329+2.00346im   0.0595122+0.488652im  -0.323494-0.35966im
+  1.11089+0.935174im  -0.384457+1.71419im    0.114358-0.360676im
+  1.54119+0.362003im  -0.693623-2.50141im    -1.42383-1.06341im
+```
+
+## References:
+- Edelman and Rao, 2005
+"""
 struct Ginibre <: ContinuousMatrixDistribution
    beta::Float64
    N::Integer
 end
 
+"""
+    rand(W::Ginibre)
+
+Samples a matrix from the Ginibre ensemble.
+
+For `β = 1,2,4`, generates matrices randomly sampled from the real, complex, and quaternion
+Ginibre ensemble, respectively.
+"""
 function rand(W::Ginibre)
     beta, n = W.beta, W.N
     if beta==1

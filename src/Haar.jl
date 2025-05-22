@@ -64,7 +64,30 @@ end
 data(P::Ptr{gsl_permutation}) = [convert(Int64, x)+1 for x in
     pointer_to_array(permutation_data(P), (convert(Int64, permutation_size(P)) ,))]
 
+"""
+    Haar(β::Int) <: ContinuousMatrixDistribution
 
+Represents a Haar measure with Dyson index `β`, in which values of `β = 1,2` or `4`
+correspond to matrices are distributed with uniform Haar measure over the
+classical orthogonal, unitary and symplectic groups `O(n)`, `U(n)` and
+`Sp(n)~USp(2n)` respectively.
+
+## Fields
+- `beta`: Dyson index
+
+## Examples
+
+```@example
+julia> rand(Haar(2), 3)
+3×3 Matrix{ComplexF64}:
+ -0.275126-0.112754im  -0.217139-0.293544im    0.299633-0.829756im
+   0.48675-0.575106im   0.226526-0.445825im   -0.406164-0.131472im
+ -0.245835-0.532433im   0.375591+0.689594im  -0.0243468-0.197175im
+```
+
+## References:
+- Edelman and Rao, 2005
+"""
 mutable struct Haar <: ContinuousMatrixDistribution
     beta::Real
 end
