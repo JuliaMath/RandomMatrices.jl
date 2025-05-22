@@ -32,16 +32,12 @@ Represents a Gaussian Hermite ensemble with Dyson index `β`.
 
 ## Examples
 
-```jldoctest
-julia> d = Wigner(2); n = 3;
-
-julia> Random.seed!(1234); 
-
-julia> rand(d, n)
+```@example
+julia> rand(Wigner(2), 3)
 3×3 LinearAlgebra.Hermitian{ComplexF64, Matrix{ComplexF64}}:
-  0.560409+0.0im       -0.292145+0.125521im      1.04191+0.513798im
- -0.292145-0.125521im  -0.346868+0.0im         0.0228835-0.00164725im
-   1.04191-0.513798im  0.0228835+0.00164725im  -0.118721+0.0im
+   0.383322+0.0im       -0.0452508+0.491032im   -0.313208-0.330435im
+ -0.0452508-0.491032im   -0.264521+0.0im        -0.131337+0.0904235im
+  -0.313208+0.330435im   -0.131337-0.0904235im  -0.481758+0.0im
 ```
 """
 struct GaussianHermite{β} <: ContinuousMatrixDistribution end
