@@ -1,5 +1,6 @@
 export rand, Ginibre
 import Base.rand
+import Random: AbstractRNG, GLOBAL_RNG
 
 """
     Ginibre(β::Int, N::Int) <: ContinuousMatrixDistribution
@@ -30,29 +31,37 @@ struct Ginibre <: ContinuousMatrixDistribution
 end
 
 """
-    rand(W::Ginibre)
+    rand(rng::AbstractRNG, W::Ginibre)
 
 Samples a matrix from the Ginibre ensemble.
 
 For `β = 1,2,4`, generates matrices randomly sampled from the real, complex, and quaternion
 Ginibre ensemble, respectively.
 """
-function rand(W::Ginibre)
+function rand(rng::AbstractRNG, W::Ginibre)
     beta, n = W.beta, W.N
     if beta==1
-        randn(n,n)
+        randn(rng,n,n)
     elseif beta==2
-        randn(n,n)+im*randn(n,n)
+        randn(rng,n,n)+im*randn(rng,n,n)
     elseif beta==4
-        Q0=randn(n,n)
-        Q1=randn(n,n)
-        Q2=randn(n,n)
-        Q3=randn(n,n)
+        Q0=randn(rng,n,n)
+        Q1=randn(rng,n,n)
+        Q2=randn(rng,n,n)
+        Q3=randn(rng,n,n)
         [Q0+im*Q1 Q2+im*Q3;-Q2+im*Q3 Q0-im*Q1]
     else 
         error(string("beta = ", beta, " not implemented"))
     end
 end
+
+
+rand(W::Ginibre)=rand(GLOBAL_RNG, W)
+
+
+
+
+
 
 function jpdf(Z::AbstractMatrix{z}) where {z<:Complex}
     pi^(size(Z,1)^2)*exp(-trace(Z'*Z))
