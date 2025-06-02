@@ -169,6 +169,20 @@ used to control the density of eigenvalues near `λ = 0`.
 - `beta`: Dyson index
 - `a`: Parameter used for weighting the joint probability density function of the ensemble
 
+## Examples
+```@example
+julia> rand(GaussianLaguerre(1, 2), 2)
+2×2 Matrix{Float64}:
+  5.08544   -0.156801
+ -0.156801   3.17245
+
+julia> rand(GaussianLaguerre(4, 8), 2)
+4×4 Matrix{ComplexF64}:
+      2.66965+0.0im            0.616044-0.336025im     -8.48419e-18-2.17815e-17im    0.661922-0.190965im
+     0.616044+0.336025im        3.27444+0.0im             -0.661922+0.190965im     -1.239e-17+8.84953e-17im
+ -8.48419e-18+2.17815e-17im   -0.661922-0.190965im          2.66965+0.0im            0.616044+0.336025im
+     0.661922+0.190965im     -1.239e-17-8.84953e-17im      0.616044-0.336025im        3.27444+0.0im
+```
 ## References:
 - Edelman and Rao, 2005
 """
@@ -181,27 +195,39 @@ const Wishart = GaussianLaguerre
 #TODO Check - the eigenvalue distribution looks funky
 #TODO The appropriate matrix size should be calculated from a and one matrix dimension
 """
-    rand(d::GaussianLaguerre, dims::Tuple)
+    rand(d::GaussianLaguerre, n::Int)
 
 Generate a random matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble)
-with parameters defined in `d` and dimensions given by `dims`.
+with parameters defined in `d`.
 
-The Dyson index `β` is restricted to `β = 1,2` or `4`, for real, complex, and quaternionic fields, respectively.
+The Dyson index `β` is restricted to `β = 1,2` (`n × n` matrix) or `4` (`2n × 2n` block matrix representation),
+for real, complex, and quaternionic fields, respectively.
 """
-function rand(d::GaussianLaguerre, dims::Dim2)
-  n = 2.0*a/d.beta
-  if d.beta == 1 #real
-    A = randn(dims)
-  elseif d.beta == 2 #complex
-    A = randn(dims) + im*randn(dims)
-  elseif d.beta == 4 #quaternion
-    #Employs 2x2 matrix representation of quaternions
-    X = randn(dims) + im*randn(dims)
-    Y = randn(dims) + im*randn(dims)
-    A = [X Y; -conj(Y) conj(X)]
-    error("beta = $(d.beta) is not implemented")
+function rand(d::GaussianLaguerre, n::Int)
+  a, beta = d.a, d.beta
+  a >= beta * n / 2 || throw(ArgumentError("the minimum value of `a` must be `βn/2`."))
+  m = Int(2*a/beta)
+  if beta == 1 # real
+    A = randn(m, n)
+  elseif beta == 2 # complex
+    A = randn(ComplexF64, m, n)
+  elseif beta == 4 # quaternion
+    # employs 2x2 matrix representation of quaternions
+    X = randn(ComplexF64, m, n)
+    Y = randn(ComplexF64, m, n)
+    A = Matrix{ComplexF64}(undef, 2m, 2n)
+    @inbounds for j in 1:n, i in 1:m
+        x = X[i, j]
+        y = Y[i, j]
+        A[i, j] = x
+        A[i+m, j] = -conj(y)
+        A[i, j+n] = y
+        A[i+m, j+n]   = conj(x)
+    end
+  else
+    error("beta = $(beta) is not implemented")
   end
-  return (A * A') / dims[1]
+  return (A' * A) / n
 end
 
 """
