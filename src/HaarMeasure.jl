@@ -1,6 +1,6 @@
 #TODO implement O(n^2) method
 """
-    rand(W::Haar, n::Int)
+    rand(rng::AbstractRNG, W::Haar, n::Int)
 
 Computes samples of real or complex Haar matrices of size `n`×`n`.
 
@@ -24,19 +24,19 @@ implemented in most versions of LAPACK.
 - Edelman and Rao, 2005
 - Mezzadri, 2006, math-ph/0609050
 """
-function rand(W::Haar, n::Int, doCorrection::Int=1)
+function rand(rng::AbstractRNG, W::Haar, n::Int, doCorrection::Int=1)
     beta = W.beta
-    M=rand(Ginibre(beta,n))
+    M=rand(rng,Ginibre(beta,n))
     q,r=qr(M)
     if doCorrection==0
         q
     elseif doCorrection==1
         if beta==1
-            L = sign.(rand(n).-0.5)
+            L = sign.(rand(rng,n).-0.5)
         elseif beta==2
-            L = exp.(im*rand(n)*2pi)
+            L = exp.(im*rand(rng,n)*2pi)
         elseif beta==4
-            L = exp.(im*rand(2n)*2pi)
+            L = exp.(im*rand(rng,2n)*2pi)
         else
             error(string("beta = ",beta, " not implemented."))
         end
@@ -53,6 +53,10 @@ function rand(W::Haar, n::Int, doCorrection::Int=1)
         q*Diagonal(L)
     end
 end
+
+rand(W::Haar, n::Int, doCorrection::Int=1)= rand(GLOBAL_RNG,W,n,doCorrection)
+
+
 
 #A utility method to check if the piecewise correction is needed
 #This checks the R part of the QR factorization; if correctly done,

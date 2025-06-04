@@ -1,6 +1,7 @@
 using RandomMatrices
 using LinearAlgebra: I, tr, Diagonal, QRPackedQ
 using Test
+using Random
 
 @testset "Haar" begin
 
@@ -29,4 +30,23 @@ for T in (Float64, ComplexF64)
     @test C*A' ≈ C*A2'
 end
 
+
+@testset "Local RNG reproducibility" begin
+    rng1 = MersenneTwister(1234)
+    rng2 = MersenneTwister(1234)
+
+    A = rand(rng1, Haar(1), N)
+    B = rand(rng2, Haar(1), N)
+
+    @test A ≈ B
+
+    # Confirm that rand still works without passing an RNG
+    C = rand(Haar(1), N)
+    @test size(C) == (N, N)
+end
+
+
 end # testset
+
+
+
