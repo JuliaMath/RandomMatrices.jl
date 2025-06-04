@@ -88,9 +88,9 @@ julia> rand(Haar(2), 3)
 ## References:
 - Edelman and Rao, 2005
 """
-mutable struct Haar <: ContinuousMatrixDistribution
-    beta::Real
-end
+struct Haar{B} <: ContinuousMatrixDistribution 
+    beta::B
+end 
 
 # In random matrix theory one often encounters expressions of the form
 #
