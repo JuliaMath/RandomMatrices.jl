@@ -40,8 +40,9 @@ julia> rand(Wigner(2), 3)
   -0.313208+0.330435im   -0.131337-0.0904235im  -0.481758+0.0im
 ```
 """
-struct GaussianHermite{β} <: ContinuousMatrixDistribution end
-GaussianHermite(β) = GaussianHermite{β}()
+struct GaussianHermite{B} <: ContinuousMatrixDistribution 
+  beta::B
+end
 
 """
 Synonym for GaussianHermite{β}
@@ -57,29 +58,26 @@ The Dyson index `β` is restricted to `β = 1,2` or `4`, for real, complex, and 
 """
 rand(d::Type{Wigner{β}}, dims...) where {β} = rand(d(), dims...)
 
-function rand(d::Wigner{1}, n::Int)
-    A = randn(n, n)
-    normalization = 1 / √(2n)
-    return Symmetric((A + A') / 2 * normalization)
+function rand(d::Wigner, n::Int)
+    if d.beta == 1
+      A = randn(n, n)
+      normalization = 1 / √(2n)
+      return Symmetric((A + A') / 2 * normalization)
+    elseif d.beta == 2
+      A = randn(n, n) + im*randn(n, n)
+      normalization = √(4*n)
+      return Hermitian((A + A') / normalization)
+    elseif d.beta == 4
+      #Employs 2x2 matrix representation of quaternions
+      X = randn(n, n) + im*randn(n, n)
+      Y = randn(n, n) + im*randn(n, n)
+      A = [X Y; -conj(Y) conj(X)]
+      normalization = √(8*n)
+      return Hermitian((A + A') / normalization)
+    else
+      throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$(d.beta)"))
+    end
 end
-
-function rand(d::Wigner{2}, n::Int)
-    A = randn(n, n) + im*randn(n, n)
-    normalization = √(4*n)
-    return Hermitian((A + A') / normalization)
-end
-
-function rand(d::Wigner{4}, n::Int)
-    #Employs 2x2 matrix representation of quaternions
-    X = randn(n, n) + im*randn(n, n)
-    Y = randn(n, n) + im*randn(n, n)
-    A = [X Y; -conj(Y) conj(X)]
-    normalization = √(8*n)
-    return Hermitian((A + A') / normalization)
-end
-
-rand(d::Wigner{β}, n::Int) where {β} =
-    throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$β"))
 
 function rand(d::Wigner{β}, dims::Int...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
@@ -102,14 +100,14 @@ The `β == ∞` case is defined in Edelman, Persson and Sutton, 2012.
 """
 function tridrand(d::Wigner{β}, n::Int) where {β}
     χ(df::Real) = rand(Distributions.Chi(df))
-    if β≤0
-        throw(ArgumentError("β = $β cannot be nonpositive"))
-    elseif isinf(β)
+    if d.beta≤0
+        throw(ArgumentError("β = $(d.beta) cannot be nonpositive"))
+    elseif isinf(d.beta)
         return tridrand(Wigner{Inf}, n)
     else
         normalization = 1 / √(2n)
         Hd = rand(Distributions.Normal(0,2), n)./√2
-        He = [χ(β*i)/√2 for i=n-1:-1:1]
+        He = [χ(d.beta*i)/√2 for i=n-1:-1:1]
         return normalization * SymTridiagonal(Hd, He)
     end
 end
@@ -118,7 +116,7 @@ function tridrand(d::Wigner{β}, dims...) where {β}
     if length(dims)==2 && dims[1] == dims[2]
 	return rand(d, dims[1])
     else
-        throw(ArgumentError("Cannot sample random matrix of size $dims for β=$β"))
+        throw(ArgumentError("Cannot sample random matrix of size $dims for β=$(d.beta)"))
     end
 end
 
@@ -147,10 +145,10 @@ function eigvaljpdf(d::Wigner{β}, λ::AbstractVector{Eigenvalue}) where {β,Eig
     #Calculate normalization constant
     c = (2π)^(-n/2)
     for j=1:n
-        c *= gamma(1 + β/2)/gamma(1 + β*j/2)
+        c *= gamma(1 + d.beta/2)/gamma(1 + d.beta*j/2)
     end
     Energy = sum(λ.^2/2) #Calculate argument of exponential
-    VandermondeDeterminant(λ, β) * exp(-Energy)
+    VandermondeDeterminant(λ, d.beta) * exp(-Energy)
 end
 
 #####################
@@ -186,11 +184,11 @@ julia> rand(GaussianLaguerre(4, 8), 2)
 ## References:
 - Edelman and Rao, 2005
 """
-mutable struct GaussianLaguerre <: ContinuousMatrixDistribution
-  beta::Real
-  a::Real
-end
-const Wishart = GaussianLaguerre
+struct GaussianLaguerre{B,A} <: ContinuousMatrixDistribution 
+  beta::B
+  a::A
+end 
+const Wishart{B,A} = GaussianLaguerre{B,A}
 
 #TODO Check - the eigenvalue distribution looks funky
 #TODO The appropriate matrix size should be calculated from a and one matrix dimension
@@ -300,12 +298,12 @@ Represents a Gaussian-Jacobi ensemble with Dyson index `β`, while
 ## References:
 - Edelman and Rao, 2005
 """
-mutable struct GaussianJacobi <: ContinuousMatrixDistribution
-  beta::Real
-  a::Real
-  b::Real
-end
-const MANOVA = GaussianJacobi
+struct GaussianJacobi{B,A} <: ContinuousMatrixDistribution 
+  beta::B
+  a::A
+  b::A
+end 
+const MANOVA{B,A} = GaussianJacobi{B,A}
 
 """
     rand(d::GaussianJacobi, n::Int)

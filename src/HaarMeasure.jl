@@ -26,7 +26,7 @@ implemented in most versions of LAPACK.
 """
 function rand(W::Haar, n::Int, doCorrection::Int=1)
     beta = W.beta
-    M=rand(Ginibre(beta,n))
+    M=rand(Ginibre(beta), n)
     q,r=qr(M)
     if doCorrection==0
         q
