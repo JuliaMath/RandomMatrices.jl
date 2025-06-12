@@ -24,11 +24,12 @@ export GaussianHermite, GaussianLaguerre, GaussianJacobi,
 #####################
 
 """
-    GaussianHermite(β::Int) <: ContinuousMatrixDistribution
+    GaussianHermite{β} <: ContinuousMatrixDistribution
+    GaussianHermite(β::Real) -> GaussianHermite{β}()
 
 Represents a Gaussian Hermite ensemble with Dyson index `β`.
 
-`Wigner(β)` is a synonym.
+`Wigner{β}` is a synonym.
 
 ## Examples
 
@@ -41,7 +42,7 @@ julia> rand(Wigner(2), 3)
 ```
 """
 struct GaussianHermite{β} <: ContinuousMatrixDistribution end
-GaussianHermite(β) = GaussianHermite{β}()
+GaussianHermite(β::Real) = GaussianHermite{β}()
 
 """
 Synonym for GaussianHermite{β}
@@ -49,7 +50,7 @@ Synonym for GaussianHermite{β}
 const Wigner{β} = GaussianHermite{β}
 
 """
-    rand(d::Wigner, n::Int)
+    rand(d::Wigner{β}, n::Int)
 
 Generates an `n × n` matrix randomly sampled from the Gaussian-Hermite ensemble (also known as the Wigner ensemble).
 
@@ -64,16 +65,24 @@ function rand(d::Wigner{1}, n::Int)
 end
 
 function rand(d::Wigner{2}, n::Int)
-    A = randn(n, n) + im*randn(n, n)
+    A = randn(ComplexF64, n, n)
     normalization = √(4*n)
     return Hermitian((A + A') / normalization)
 end
 
 function rand(d::Wigner{4}, n::Int)
     #Employs 2x2 matrix representation of quaternions
-    X = randn(n, n) + im*randn(n, n)
-    Y = randn(n, n) + im*randn(n, n)
-    A = [X Y; -conj(Y) conj(X)]
+    X = randn(ComplexF64, n, n)
+    Y = randn(ComplexF64, n, n)
+    A = Matrix{ComplexF64}(undef, 2n, 2n)
+    @inbounds for j in 1:n, i in 1:n
+        x = X[i, j]
+        y = Y[i, j]
+        A[i, j] = x
+        A[i+n, j] = -conj(y)
+        A[i, j+n] = y
+        A[i+n, j+n] = conj(x)
+    end
     normalization = √(8*n)
     return Hermitian((A + A') / normalization)
 end
@@ -90,7 +99,7 @@ function rand(d::Wigner{β}, dims::Int...) where {β}
 end
 
 """
-    tridand(d::Wigner, n::Int)
+    tridand(d::Wigner{β}, n::Int)
 
 Generates an `n × n` symmetric tridiagonal matrix from the Gaussian-Hermite ensemble (also known as the Wigner ensemble).
 
@@ -158,15 +167,15 @@ end
 #####################
 
 """
-    GaussianLaguerre(β::Real, a::Real)` <: ContinuousMatrixDistribution
+    GaussianLaguerre{β}(a::Real)` <: ContinuousMatrixDistribution
+    GaussianLaguerre(β::Real, a::Real) -> GaussianLaguerre{β}(a)
 
 Represents a Gaussian-Laguerre ensemble with Dyson index `β` and `a` parameter
 used to control the density of eigenvalues near `λ = 0`.
 
-`Wishart(β, a)` is a synonym.
+`Wishart{β}(a)` is a synonym.
 
 ## Fields
-- `beta`: Dyson index
 - `a`: Parameter used for weighting the joint probability density function of the ensemble
 
 ## Examples
@@ -186,16 +195,16 @@ julia> rand(GaussianLaguerre(4, 8), 2)
 ## References:
 - Edelman and Rao, 2005
 """
-mutable struct GaussianLaguerre <: ContinuousMatrixDistribution
-  beta::Real
+struct GaussianLaguerre{β} <: ContinuousMatrixDistribution
   a::Real
 end
-const Wishart = GaussianLaguerre
+GaussianLaguerre(β::Real, a::Real) = GaussianLaguerre{β}(a::Real)
+const Wishart{β} = GaussianLaguerre{β}
 
 #TODO Check - the eigenvalue distribution looks funky
 #TODO The appropriate matrix size should be calculated from a and one matrix dimension
 """
-    rand(d::GaussianLaguerre, n::Int)
+    rand(d::GaussianLaguerre{β}, n::Int)
 
 Generate a random matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble)
 with parameters defined in `d`.
@@ -203,15 +212,24 @@ with parameters defined in `d`.
 The Dyson index `β` is restricted to `β = 1,2` (`n × n` matrix) or `4` (`2n × 2n` block matrix representation),
 for real, complex, and quaternionic fields, respectively.
 """
-function rand(d::GaussianLaguerre, n::Int)
-  a, beta = d.a, d.beta
-  a >= beta * n / 2 || throw(ArgumentError("the minimum value of `a` must be `βn/2`."))
-  m = Int(2*a/beta)
-  if beta == 1 # real
+function rand(d::GaussianLaguerre{1}, n::Int)
+    a = d.a
+    a >=  n / 2 || throw(ArgumentError("the minimum value of `a` must be `βn/2`."))
+    m = Int(2a)
     A = randn(m, n)
-  elseif beta == 2 # complex
+    return (A' * A) / n
+end
+function rand(d::GaussianLaguerre{2}, n::Int)
+    a = d.a
+    a >= n || throw(ArgumentError("the minimum value of `a` must be `βn/2`."))
+    m = Int(2a)
     A = randn(ComplexF64, m, n)
-  elseif beta == 4 # quaternion
+    return (A' * A) / n
+end
+function rand(d::GaussianLaguerre{4}, n::Int)
+    a = d.a
+    a >= 2n || throw(ArgumentError("the minimum value of `a` must be `βn/2`."))
+    m = Int(2a)
     # employs 2x2 matrix representation of quaternions
     X = randn(ComplexF64, m, n)
     Y = randn(ComplexF64, m, n)
@@ -224,26 +242,24 @@ function rand(d::GaussianLaguerre, n::Int)
         A[i, j+n] = y
         A[i+m, j+n]   = conj(x)
     end
-  else
-    error("beta = $(beta) is not implemented")
-  end
-  return (A' * A) / n
+    return (A' * A) / n
 end
+rand(d::GaussianLaguerre{β}, n::Int) where {β} = throw(ArgumentError("beta = $(β) is not implemented"))
 
 """
-    bidrand(d::GaussianLaguerre, n::Int)
+    bidrand(d::GaussianLaguerre{β}, n::Int)
 
 Generate an `n × n` bidiagonal matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble).
 """
-function bidrand(d::GaussianLaguerre, m::Integer)
-  if d.a <= d.beta*(m-1)/2.0
-      error("Given your choice of m and beta, a must be at least $(d.beta*(m-1)/2.0) (You said a = $(d.a))")
+function bidrand(d::GaussianLaguerre{β}, m::Integer) where {β}
+  if d.a <= β*(m-1)/2.0
+      error("Given your choice of m and beta, a must be at least $(β*(m-1)/2.0) (You said a = $(d.a))")
   end
-  Bidiagonal([chi(2*d.a-i*d.beta) for i=0:m-1], [chi(d.beta*i) for i=m-1:-1:1], true)
+  Bidiagonal([chi(2*d.a-i*β) for i=0:m-1], [chi(β*i) for i=m-1:-1:1], true)
 end
 
 """
-    tridrand(d::GaussianLaguerre, n::Int)
+    tridrand(d::GaussianLaguerre{β}, n::Int)
 
 Generate an `n × n` tridiagonal matrix sampled from the Gaussian Laguerre ensemble (also known as the Wishart ensemble).
 """
@@ -257,25 +273,25 @@ end
 eigvalrand(d::GaussianLaguerre, m::Integer) = eigvals(tridrand(d, m))
 
 #TODO Check m and ns
-function eigvaljpdf(d::GaussianLaguerre, lambda::Vector{Eigenvalue}) where {Eigenvalue<:Number}
+function eigvaljpdf(d::GaussianLaguerre{β}, lambda::Vector{Eigenvalue}) where {β,Eigenvalue<:Number}
   m = length(lambda)
   #Laguerre parameters
-  p = 0.5*d.beta*(m-1) + 1.0
+  p = 0.5*β*(m-1) + 1.0
   #Calculate normalization constant
   c = 2.0^-(m*d.a)
-  z = (d.a - d.beta*(m)*0.5)
+  z = (d.a - β*(m)*0.5)
   for j=1:m
-     z += 0.5*d.beta
+     z += 0.5*β
      if z < 0 && (int(z) - z) < eps()
          #Pole of gamma function, there is no density here no matter what
          return 0.0
      end
-     c *= gamma(1 + beta/2)/(gamma(1 + beta*j/2)*gamma(z))
+     c *= gamma(1 + β/2)/(gamma(1 + β*j/2)*gamma(z))
   end
 
   Prod = prod(lambda.^(a-p)) #Calculate Laguerre product term
   Energy = sum(lambda)/2 #Calculate argument of exponential
-  return c * VandermondeDeterminant(lambda, beta) * Prod * exp(-Energy)
+  return c * VandermondeDeterminant(lambda, β) * Prod * exp(-Energy)
 end
 
 
@@ -285,37 +301,36 @@ end
 ###################
 
 """
-    GaussianJacobi(β::Real, a::Real, a::Real)` <: ContinuousMatrixDistribution
+    GaussianJacobi{β}(a::Real, b::Real) <: ContinuousMatrixDistribution
+    GaussianJacobi(β::Real, a::Real, b::Real) -> GaussianJacobi{β}(a, b)
 
 Represents a Gaussian-Jacobi ensemble with Dyson index `β`, while
 `a`and `b` are parameters used to weight the joint probability density function of the ensemble.
 
-`MANOVA(β, a, b)` is a synonym.
+`MANOVA{β}(a, b)` is a synonym.
 
 ## Fields
-- `beta`: Dyson index
 - `a`: Parameter used for shaping the joint probability density function near `λ = 0`
 - `b`: Parameter used for shaping the joint probability density function near `λ = 1`
 
 ## References:
 - Edelman and Rao, 2005
 """
-mutable struct GaussianJacobi <: ContinuousMatrixDistribution
-  beta::Real
+struct GaussianJacobi{β} <: ContinuousMatrixDistribution
   a::Real
   b::Real
 end
-const MANOVA = GaussianJacobi
+const MANOVA{β} = GaussianJacobi{β}
 
 """
-    rand(d::GaussianJacobi, n::Int)
+    rand(d::GaussianJacobi{β}, n::Int)
 
 Generate an `n × n` random matrix sampled from the Gaussian-Jacobi ensemble (also known as the MANOVA ensemble)
 with parameters defined in `d`.
 """
-function rand(d::GaussianJacobi, m::Integer)
-  w1 = Wishart(m, int(2.0*d.a/d.beta), d.beta)
-  w2 = Wishart(m, int(2.0*d.b/d.beta), d.beta)
+function rand(d::GaussianJacobi{β}, m::Integer) where {β}
+  w1 = Wishart(m, int(2.0*d.a/β), β)
+  w2 = Wishart(m, int(2.0*d.b/β), β)
   return (w1 + w2) \ w1
 end
 
@@ -346,12 +361,12 @@ end
 #   and generalized singular value problems", Foundations of Computational Mathematics,
 #   vol. 8 iss. 2 (2008), pp 259-285.
 #TODO check normalization
-function sprand(d::GaussianJacobi, n::Integer, a::Real, b::Real)
+function sprand(d::GaussianJacobi{β}, n::Integer, a::Real, b::Real) where {β}
   CoordI = zeros(8n-4)
   CoordJ = zeros(8n-4)
   Values = zeros(8n-4)
 
-  c, s, cp, sp = SampleCSValues(n, a, b, d.beta)
+  c, s, cp, sp = SampleCSValues(n, a, b, β)
 
   #Diagonals of each block
   for i=1:n
@@ -392,9 +407,9 @@ function sprand(d::GaussianJacobi, n::Integer, a::Real, b::Real)
 end
 
 #Return n eigenvalues distributed according to the Jacobi ensemble
-function eigvalrand(d::GaussianJacobi, n::Integer)
+function eigvalrand(d::GaussianJacobi{β}, n::Integer) where {β}
   #Generate just the upper left quadrant of the matrix
-  c, s, cp, sp = SampleCSValues(n, d.a, d.b, d.beta)
+  c, s, cp, sp = SampleCSValues(n, d.a, d.b, β)
   dv = [i==1 ? c[n] : c[n+1-i] * sp[n+1-i] for i=1:n]
   ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
 
@@ -404,28 +419,28 @@ function eigvalrand(d::GaussianJacobi, n::Integer)
 end
 
 #TODO Check m and ns
-function eigvaljpdf(d::GaussianJacobi, lambda::Vector{Eigenvalue}) where {Eigenvalue<:Number}
+function eigvaljpdf(d::GaussianJacobi{β}, lambda::Vector{Eigenvalue}) where {β,Eigenvalue<:Number}
   m = length(lambda)
   #Jacobi parameters
   a1, a2 = d.a, d.b
-  p = 1.0 + d.beta*(m-1)/2.0
+  p = 1.0 + β*(m-1)/2.0
   #Calculate normalization constant
   c = 1.0
   for j=1:m
-    z1 = (a1 - beta*(m-j)/2.0)
+    z1 = (a1 - β*(m-j)/2.0)
     if z1 < 0 && (int(z1) - z1) < eps()
       return 0.0 #Pole of gamma function, there is no density here no matter what
     end
-    z2 = (a2 - beta*(m-j)/2.0)
+    z2 = (a2 - β*(m-j)/2.0)
     if z2 < 0 && (int(z2) - z2) < eps()
       return 0.0 #Pole of gamma function, there is no density here no matter what
     end
-    c *= gamma(1 + beta/2)*gamma(a1+a2-beta*(m-j)/2)
-    c /= gamma(1 + beta*j/2)*gamma(z1)*gamma(z2)
+    c *= gamma(1 + β/2)*gamma(a1+a2-β*(m-j)/2)
+    c /= gamma(1 + β*j/2)*gamma(z1)*gamma(z2)
   end
 
   Prod = prod(lambda.^(a1-p))*prod((1-lambda).^(a2-p)) #Calculate Laguerre product term
   Energy = sum(lambda/2) #Calculate argument of exponential
 
-  return c * VandermondeDeterminant(lambda, beta) * Prod * exp(-Energy)
+  return c * VandermondeDeterminant(lambda, β) * Prod * exp(-Energy)
 end

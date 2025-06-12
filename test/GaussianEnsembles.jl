@@ -4,7 +4,7 @@ using Test
 @testset "GaussianEnsembles" begin
 
 @test Wigner{3} == GaussianHermite{3}
-@test Wishart == GaussianLaguerre
+@test Wishart{3} == GaussianLaguerre{3}
 
 n = 25
 
