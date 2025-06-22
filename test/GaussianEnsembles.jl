@@ -50,6 +50,14 @@ for (β, T, N) in [(1, Real, n), (2, Complex, n), (4, Complex, 2n)]
         ed = eigvaljpdf(d, rand(3))
         @test isa(ed, Real)
     end
+    @testset "MANOVA (β = $(β))" begin
+        a = 2.0 * (rand(1:5) + β * n)
+        b = a * 3.5
+        d = MANOVA(β, a, b)
+        A = rand(d, n)
+        @test eltype(A) <: T
+        @test size(A) == (N, N)
+    end
 end
 
 end # testset

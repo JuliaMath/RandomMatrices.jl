@@ -320,6 +320,7 @@ struct GaussianJacobi{β} <: ContinuousMatrixDistribution
   a::Real
   b::Real
 end
+GaussianJacobi(β::Real, a::Real, b::Real) = GaussianJacobi{β}(a, b)
 const MANOVA{β} = GaussianJacobi{β}
 
 """
@@ -328,9 +329,9 @@ const MANOVA{β} = GaussianJacobi{β}
 Generate an `n × n` random matrix sampled from the Gaussian-Jacobi ensemble (also known as the MANOVA ensemble)
 with parameters defined in `d`.
 """
-function rand(d::GaussianJacobi{β}, m::Integer) where {β}
-  w1 = Wishart(m, int(2.0*d.a/β), β)
-  w2 = Wishart(m, int(2.0*d.b/β), β)
+function rand(d::GaussianJacobi{β}, n::Int) where {β}
+  w1 = rand(Wishart(β, d.a), n)
+  w2 = rand(Wishart(β, d.b), n)
   return (w1 + w2) \ w1
 end
 
