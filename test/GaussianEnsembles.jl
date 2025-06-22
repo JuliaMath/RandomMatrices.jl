@@ -47,7 +47,7 @@ for (β, T, N) in [(1, Real, n), (2, Complex, n), (4, Complex, 2n)]
         #vd = RandomMatrices.VandermondeDeterminant(vals, β)
         #@test isa(vd, Real)
 
-        ed = eigvaljpdf(d, vals)
+        ed = eigvaljpdf(d, rand(3))
         @test isa(ed, Real)
     end
 end
