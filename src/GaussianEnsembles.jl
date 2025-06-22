@@ -289,7 +289,7 @@ function eigvaljpdf(d::GaussianLaguerre{β}, lambda::Vector{Eigenvalue}) where {
      c *= gamma(1 + β/2)/(gamma(1 + β*j/2)*gamma(z))
   end
 
-  Prod = prod(lambda.^(a-p)) #Calculate Laguerre product term
+  Prod = prod(lambda.^(d.a-p)) #Calculate Laguerre product term
   Energy = sum(lambda)/2 #Calculate argument of exponential
   return c * VandermondeDeterminant(lambda, β) * Prod * exp(-Energy)
 end
