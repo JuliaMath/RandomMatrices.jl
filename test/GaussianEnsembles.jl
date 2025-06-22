@@ -4,7 +4,7 @@ using Test
 @testset "GaussianEnsembles" begin
 
 @test Wigner{3} == GaussianHermite{3}
-@test Wishart == GaussianLaguerre
+@test Wishart{3} == GaussianLaguerre{3}
 
 n = 25
 
@@ -47,8 +47,16 @@ for (β, T, N) in [(1, Real, n), (2, Complex, n), (4, Complex, 2n)]
         #vd = RandomMatrices.VandermondeDeterminant(vals, β)
         #@test isa(vd, Real)
 
-        #ed = eigvaljpdf(d, vals)
-        #@test isa(ed, Real)
+        ed = eigvaljpdf(d, rand(3))
+        @test isa(ed, Real)
+    end
+    @testset "MANOVA (β = $(β))" begin
+        a = 2.0 * (rand(1:5) + β * n)
+        b = a * 3.5
+        d = MANOVA(β, a, b)
+        A = rand(d, n)
+        @test eltype(A) <: T
+        @test size(A) == (N, N)
     end
 end
 

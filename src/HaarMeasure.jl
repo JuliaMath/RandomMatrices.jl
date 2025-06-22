@@ -24,42 +24,55 @@ implemented in most versions of LAPACK.
 - Edelman and Rao, 2005
 - Mezzadri, 2006, math-ph/0609050
 """
-function rand(W::Haar, n::Int, doCorrection::Int=1)
-    beta = W.beta
-    M=rand(Ginibre(beta,n))
-    q,r=qr(M)
+function rand(W::Haar{1}, n::Int, doCorrection::Int=1)
+    M = rand(Ginibre(1), n)
+    q, r = qr(M)
     if doCorrection==0
-        q
+        return q
     elseif doCorrection==1
-        if beta==1
-            L = sign.(rand(n).-0.5)
-        elseif beta==2
-            L = exp.(im*rand(n)*2pi)
-        elseif beta==4
-            L = exp.(im*rand(2n)*2pi)
-        else
-            error(string("beta = ",beta, " not implemented."))
-        end
-        q*Diagonal(L)
+        L = sign.(rand(n).-0.5)
+        return q * Diagonal(L)
     elseif doCorrection==2
-        if beta==1
-            L=sign.(diag(r))
-        elseif (beta==2 || beta==4)
-            L=diag(r)
-            L=L./abs.(L)
-        else
-            error(string("beta = ",beta, " not implemented."))
-        end
-        q*Diagonal(L)
+        L = sign.(diag(r))
+        return q * Diagonal(L)
     end
 end
+function rand(W::Haar{2}, n::Int, doCorrection::Int=1)
+    M = rand(Ginibre(2), n)
+    q, r = qr(M)
+    if doCorrection==0
+        return q
+    elseif doCorrection==1
+        L = exp.(im*rand(n)*2pi)
+        return q * Diagonal(L)
+    elseif doCorrection==2
+        L = diag(r)
+        L = L ./ abs.(L)
+        return q * Diagonal(L)
+    end
+end
+function rand(W::Haar{4}, n::Int, doCorrection::Int=1)
+    M = rand(Ginibre(4), n)
+    q, r = qr(M)
+    if doCorrection==0
+        return q
+    elseif doCorrection==1
+        L = exp.(im*rand(2n)*2pi)
+        return q * Diagonal(L)
+    elseif doCorrection==2
+        L = diag(r)
+        L = L ./ abs.(L)
+        return q * Diagonal(L)
+    end
+end
+rand(W::Haar{β}, n::Int, doCorrection::Int=1) where {β} = throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$β"))
 
 #A utility method to check if the piecewise correction is needed
 #This checks the R part of the QR factorization; if correctly done,
 #the diagonals are all chi variables so are non-negative
 function NeedPiecewiseCorrection()
     n=20
-    R=qr(randn(Ginibre(2,n)))[2]
+    R=qr(randn(Ginibre(2), n))[2]
     return any([x<0 for x in diag(R)])
 end
 
@@ -140,12 +153,7 @@ function Stewart(::Type{T}, n) where {T<:Union{Float64,ComplexF64}}
 end
 
 export randfast
-function randfast(W::Haar, n::Int)
-    if W.beta==1
-        Stewart(Float64, n)
-    elseif W.beta==2
-        Stewart(ComplexF64, n)
-    else
-        error("beta = $beta not implemented")
-    end
-end
+randfast(W::Haar{1}, n::Int) = Stewart(Float64, n)
+randfast(W::Haar{2}, n::Int) = Stewart(ComplexF64, n)
+randfast(W::Haar{β}, n::Int) where {β} = throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$β"))
+

@@ -2,19 +2,16 @@ export rand, Ginibre
 import Base.rand
 
 """
-    Ginibre(β::Int, N::Int) <: ContinuousMatrixDistribution
+    Ginibre{β} <: ContinuousMatrixDistribution
+    Ginibre(β::Real) -> Ginibre{β}()
 
 Represents a Ginibre ensemble with Dyson index `β` living in `GL(N, F)`, the set
 of all invertible `N × N` matrices over the field `F`. 
 
-## Fields
-- `beta`: Dyson index
-- `N`: Matrix dimension over the field `F`.
-
 ## Examples
 
 ```@example
-julia> rand(Ginibre(2, 3))
+julia> rand(Ginibre(2), 3)
 3×3 Matrix{ComplexF64}:
  0.781329+2.00346im   0.0595122+0.488652im  -0.323494-0.35966im
   1.11089+0.935174im  -0.384457+1.71419im    0.114358-0.360676im
@@ -24,35 +21,28 @@ julia> rand(Ginibre(2, 3))
 ## References:
 - Edelman and Rao, 2005
 """
-struct Ginibre <: ContinuousMatrixDistribution
-   beta::Float64
-   N::Integer
-end
+struct Ginibre{β} <: ContinuousMatrixDistribution end
+Ginibre(β::B) where {B} = Ginibre{β}()
 
 """
-    rand(W::Ginibre)
+    rand(W::Ginibre{β}, n::Int)
 
 Samples a matrix from the Ginibre ensemble.
 
 For `β = 1,2,4`, generates matrices randomly sampled from the real, complex, and quaternion
 Ginibre ensemble, respectively.
 """
-function rand(W::Ginibre)
-    beta, n = W.beta, W.N
-    if beta==1
-        randn(n,n)
-    elseif beta==2
-        randn(n,n)+im*randn(n,n)
-    elseif beta==4
-        Q0=randn(n,n)
-        Q1=randn(n,n)
-        Q2=randn(n,n)
-        Q3=randn(n,n)
-        [Q0+im*Q1 Q2+im*Q3;-Q2+im*Q3 Q0-im*Q1]
-    else 
-        error(string("beta = ", beta, " not implemented"))
-    end
+rand(W::Ginibre{1}, n::Int) = randn(n, n)
+rand(W::Ginibre{2}, n::Int) = randn(ComplexF64, n, n)
+function rand(W::Ginibre{4}, n::Int)
+    Q0=randn(n,n)
+    Q1=randn(n,n)
+    Q2=randn(n,n)
+    Q3=randn(n,n)
+    return [Q0+im*Q1 Q2+im*Q3;-Q2+im*Q3 Q0-im*Q1]
 end
+rand(W::Ginibre{β}, n::Int) where {β} = throw(ArgumentError("Cannot sample random matrix of size $n x $n for β=$β"))
+
 
 function jpdf(Z::AbstractMatrix{z}) where {z<:Complex}
     pi^(size(Z,1)^2)*exp(-trace(Z'*Z))
