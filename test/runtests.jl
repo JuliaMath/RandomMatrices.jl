@@ -7,6 +7,7 @@ using Test
 	include("GaussianEnsembles.jl")
 	include("FormalPowerSeries.jl")
 	include("Haar.jl")
+	include("Ginibre.jl")
 	include("StochasticProcess.jl")
 	include("test_throws.jl")
 	include("doctests.jl")
