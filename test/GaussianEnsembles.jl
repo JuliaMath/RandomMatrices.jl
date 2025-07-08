@@ -57,6 +57,8 @@ for (β, T, N) in [(1, Real, n), (2, Complex, n), (4, Complex, 2n)]
         A = rand(d, n)
         @test eltype(A) <: T
         @test size(A) == (N, N)
+
+        @test eigvalrand(d, 5) isa Vector{Float64}
     end
 end
 
