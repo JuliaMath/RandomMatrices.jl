@@ -348,8 +348,8 @@ function SampleCSValues(n::Integer, a::Real, b::Real, beta::Real)
     csq  = [rand(Beta(beta*(a+i)/2,beta*(b+i)/2)) for i=1:n]
     cpsq = [rand(Beta(beta*i/2,beta*(a+b+1+i)/2)) for i=1:n]
     #Cosine-sine pairs
-    c , s  = sqrt(csq) , sqrt(1-csq)
-    cp, sp = sqrt(cpsq), sqrt(1-cpsq)
+    c , s  = sqrt.(csq) , sqrt.(1 .- csq)
+    cp, sp = sqrt.(cpsq), sqrt.(1 .- cpsq)
   end
   return c, s, cp, sp
 end
@@ -415,7 +415,7 @@ function eigvalrand(d::GaussianJacobi{β}, n::Integer) where {β}
   ev = [-s[n+1-i]*cp[n-i] for i=1:n-1]
 
   ##TODO: understand why dv and ev are returned as Array{Any,1}
-  M = Bidiagonal(convert(Array{Float64,1},dv), convert(Array{Float64,1},ev), false)
+  M = Bidiagonal(convert(Array{Float64,1},dv), convert(Array{Float64,1},ev), :U)
   return svdvals(M)
 end
 
